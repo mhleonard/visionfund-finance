@@ -9,7 +9,169 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      contributions: {
+        Row: {
+          amount: number
+          contribution_date: string
+          created_at: string | null
+          description: string | null
+          goal_id: string
+          id: string
+          is_confirmed: boolean | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          contribution_date: string
+          created_at?: string | null
+          description?: string | null
+          goal_id: string
+          id?: string
+          is_confirmed?: boolean | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          contribution_date?: string
+          created_at?: string | null
+          description?: string | null
+          goal_id?: string
+          id?: string
+          is_confirmed?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contributions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          created_at: string | null
+          current_total: number | null
+          description: string | null
+          expected_return_rate: number | null
+          id: string
+          initial_amount: number | null
+          monthly_pledge: number
+          name: string
+          status: Database["public"]["Enums"]["goal_status"] | null
+          target_amount: number
+          target_date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_total?: number | null
+          description?: string | null
+          expected_return_rate?: number | null
+          id?: string
+          initial_amount?: number | null
+          monthly_pledge: number
+          name: string
+          status?: Database["public"]["Enums"]["goal_status"] | null
+          target_amount: number
+          target_date: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_total?: number | null
+          description?: string | null
+          expected_return_rate?: number | null
+          id?: string
+          initial_amount?: number | null
+          monthly_pledge?: number
+          name?: string
+          status?: Database["public"]["Enums"]["goal_status"] | null
+          target_amount?: number
+          target_date?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pledges: {
+        Row: {
+          actual_amount: number | null
+          created_at: string | null
+          fulfilled_at: string | null
+          goal_id: string
+          id: string
+          pledged_amount: number
+          scheduled_date: string
+          status: Database["public"]["Enums"]["pledge_status"] | null
+          user_id: string
+        }
+        Insert: {
+          actual_amount?: number | null
+          created_at?: string | null
+          fulfilled_at?: string | null
+          goal_id: string
+          id?: string
+          pledged_amount: number
+          scheduled_date: string
+          status?: Database["public"]["Enums"]["pledge_status"] | null
+          user_id: string
+        }
+        Update: {
+          actual_amount?: number | null
+          created_at?: string | null
+          fulfilled_at?: string | null
+          goal_id?: string
+          id?: string
+          pledged_amount?: number
+          scheduled_date?: string
+          status?: Database["public"]["Enums"]["pledge_status"] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pledges_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +180,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      goal_status: "active" | "completed" | "paused"
+      pledge_status: "pending" | "fulfilled" | "partial"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +296,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      goal_status: ["active", "completed", "paused"],
+      pledge_status: ["pending", "fulfilled", "partial"],
+    },
   },
 } as const

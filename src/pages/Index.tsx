@@ -1,115 +1,110 @@
 
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { PlusCircle, Target, TrendingUp, Calendar } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-interface Goal {
-  id: string;
-  name: string;
-  targetAmount: number;
-  targetDate: string;
-  initialAmount: number;
-  monthlyPledge: number;
-  expectedReturnRate: number;
-  currentTotal: number;
-  progressPercentage: number;
-  onTrackStatus: 'on-track' | 'behind' | 'ahead';
-  projectedCompletionDate: string;
-}
-
-// Mock data for demonstration
-const mockGoals: Goal[] = [
-  {
-    id: '1',
-    name: 'Emergency Fund',
-    targetAmount: 10000,
-    targetDate: '2025-12-31',
-    initialAmount: 1000,
-    monthlyPledge: 500,
-    expectedReturnRate: 5,
-    currentTotal: 3250,
-    progressPercentage: 32.5,
-    onTrackStatus: 'on-track',
-    projectedCompletionDate: '2025-11-15'
-  },
-  {
-    id: '2',
-    name: 'Dream Vacation',
-    targetAmount: 5000,
-    targetDate: '2025-08-01',
-    initialAmount: 500,
-    monthlyPledge: 400,
-    expectedReturnRate: 5,
-    currentTotal: 1200,
-    progressPercentage: 24,
-    onTrackStatus: 'behind',
-    projectedCompletionDate: '2025-09-15'
-  },
-  {
-    id: '3',
-    name: 'New Car Down Payment',
-    targetAmount: 8000,
-    targetDate: '2026-03-01',
-    initialAmount: 2000,
-    monthlyPledge: 300,
-    expectedReturnRate: 5,
-    currentTotal: 2450,
-    progressPercentage: 30.6,
-    onTrackStatus: 'ahead',
-    projectedCompletionDate: '2025-12-01'
-  }
-];
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount);
-};
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-
-const getStatusColor = (status: Goal['onTrackStatus']) => {
-  switch (status) {
-    case 'on-track':
-      return 'text-green-600 bg-green-50';
-    case 'ahead':
-      return 'text-blue-600 bg-blue-50';
-    case 'behind':
-      return 'text-red-600 bg-red-50';
-    default:
-      return 'text-gray-600 bg-gray-50';
-  }
-};
-
-const getStatusText = (status: Goal['onTrackStatus']) => {
-  switch (status) {
-    case 'on-track':
-      return 'On Track';
-    case 'ahead':
-      return 'Ahead of Schedule';
-    case 'behind':
-      return 'Behind Schedule';
-    default:
-      return 'Unknown';
-  }
-};
+import { PlusCircle, Target, TrendingUp, LogOut } from 'lucide-react';
+import { GoalCard } from '@/components/GoalCard';
+import { CreateGoalForm } from '@/components/CreateGoalForm';
+import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
+import { useAuth } from '@/hooks/useAuth';
+import { useGoals, GoalWithCalculations } from '@/hooks/useGoals';
 
 const Index = () => {
-  const [goals] = useState<Goal[]>(mockGoals);
+  const { user, signOut } = useAuth();
+  const { goals, loading, createGoal, updateGoal, deleteGoal, refetch } = useGoals();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<GoalWithCalculations | null>(null);
+  const [fulfillPledgeGoal, setFulfillPledgeGoal] = useState<GoalWithCalculations | null>(null);
 
-  const totalGoalsValue = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
-  const totalCurrentValue = goals.reduce((sum, goal) => sum + goal.currentTotal, 0);
-  const overallProgress = (totalCurrentValue / totalGoalsValue) * 100;
+  // Redirect to auth if not authenticated
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600">Loading your goals...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const totalGoalsValue = goals.reduce((sum, goal) => sum + goal.target_amount, 0);
+  const totalCurrentValue = goals.reduce((sum, goal) => sum + (goal.current_total || 0), 0);
+  const overallProgress = totalGoalsValue > 0 ? (totalCurrentValue / totalGoalsValue) * 100 : 0;
+
+  const handleCreateGoal = async (goalData: any) => {
+    await createGoal({
+      name: goalData.name,
+      target_amount: goalData.targetAmount,
+      target_date: goalData.targetDate,
+      initial_amount: goalData.initialAmount,
+      monthly_pledge: goalData.monthlyPledge,
+      expected_return_rate: goalData.expectedReturnRate
+    });
+    setShowCreateForm(false);
+  };
+
+  const handleEditGoal = async (goalData: any) => {
+    if (!editingGoal) return;
+    
+    await updateGoal(editingGoal.id, {
+      name: goalData.name,
+      target_amount: goalData.targetAmount,
+      target_date: goalData.targetDate,
+      initial_amount: goalData.initialAmount,
+      monthly_pledge: goalData.monthlyPledge,
+      expected_return_rate: goalData.expectedReturnRate
+    });
+    setEditingGoal(null);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  if (showCreateForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
+        <CreateGoalForm
+          onSubmit={handleCreateGoal}
+          onCancel={() => setShowCreateForm(false)}
+        />
+      </div>
+    );
+  }
+
+  if (editingGoal) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
+        <CreateGoalForm
+          onSubmit={handleEditGoal}
+          onCancel={() => setEditingGoal(null)}
+          initialData={{
+            name: editingGoal.name,
+            targetAmount: editingGoal.target_amount,
+            targetDate: editingGoal.target_date,
+            initialAmount: editingGoal.initial_amount || 0,
+            monthlyPledge: editingGoal.monthly_pledge,
+            expectedReturnRate: editingGoal.expected_return_rate || 5
+          }}
+          isEditing
+        />
+      </div>
+    );
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -126,10 +121,15 @@ const Index = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                Profile
-              </Button>
-              <Button variant="outline" size="sm">
+              <span className="text-sm text-gray-600">
+                Welcome, {user.user_metadata?.first_name || user.email}
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
             </div>
@@ -145,33 +145,38 @@ const Index = () => {
         </div>
 
         {/* Overall Progress Card */}
-        <Card className="mb-8 bg-gradient-to-r from-blue-600 to-green-600 text-white border-0">
-          <CardHeader>
-            <CardTitle className="text-white">Overall Progress</CardTitle>
-            <CardDescription className="text-blue-100">
-              Your journey to financial freedom
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-end">
-                <div>
-                  <p className="text-2xl font-bold">{formatCurrency(totalCurrentValue)}</p>
-                  <p className="text-sm text-blue-100">of {formatCurrency(totalGoalsValue)} total</p>
+        {goals.length > 0 && (
+          <Card className="mb-8 bg-gradient-to-r from-blue-600 to-green-600 text-white border-0">
+            <CardHeader>
+              <CardTitle className="text-white">Overall Progress</CardTitle>
+              <CardDescription className="text-blue-100">
+                Your journey to financial freedom
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-2xl font-bold">{formatCurrency(totalCurrentValue)}</p>
+                    <p className="text-sm text-blue-100">of {formatCurrency(totalGoalsValue)} total</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold">{Math.round(overallProgress)}%</p>
+                    <p className="text-sm text-blue-100">Complete</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-3xl font-bold">{Math.round(overallProgress)}%</p>
-                  <p className="text-sm text-blue-100">Complete</p>
-                </div>
+                <Progress value={overallProgress} className="bg-blue-500/30 [&>div]:bg-white" />
               </div>
-              <Progress value={overallProgress} className="bg-blue-500/30 [&>div]:bg-white" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <Button className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+          <Button 
+            onClick={() => setShowCreateForm(true)}
+            className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+          >
             <PlusCircle className="mr-2 h-5 w-5" />
             Create New Goal
           </Button>
@@ -184,53 +189,13 @@ const Index = () => {
         {/* Goals Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {goals.map((goal) => (
-            <Card key={goal.id} className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg line-clamp-1">{goal.name}</CardTitle>
-                  <span className={cn(
-                    'px-2 py-1 rounded-full text-xs font-medium',
-                    getStatusColor(goal.onTrackStatus)
-                  )}>
-                    {getStatusText(goal.onTrackStatus)}
-                  </span>
-                </div>
-                <CardDescription>
-                  Target: {formatCurrency(goal.targetAmount)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-600">Progress</span>
-                    <span className="text-sm font-medium">{Math.round(goal.progressPercentage)}%</span>
-                  </div>
-                  <Progress value={goal.progressPercentage} className="h-2" />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Current</span>
-                    <span className="text-sm font-medium">{formatCurrency(goal.currentTotal)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Monthly Pledge</span>
-                    <span className="text-sm font-medium">{formatCurrency(goal.monthlyPledge)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Target Date</span>
-                    <span className="text-sm font-medium">{formatDate(goal.targetDate)}</span>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="mr-1 h-4 w-4" />
-                    Projected: {formatDate(goal.projectedCompletionDate)}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <GoalCard 
+              key={goal.id} 
+              goal={goal}
+              onEdit={setEditingGoal}
+              onDelete={deleteGoal}
+              onFulfillPledge={setFulfillPledgeGoal}
+            />
           ))}
         </div>
 
@@ -243,7 +208,10 @@ const Index = () => {
               <p className="text-gray-600 mb-6">
                 Start your financial journey by creating your first goal.
               </p>
-              <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+              <Button 
+                onClick={() => setShowCreateForm(true)}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create Your First Goal
               </Button>
@@ -251,6 +219,19 @@ const Index = () => {
           </Card>
         )}
       </main>
+
+      {/* Fulfill Pledge Dialog */}
+      <FulfillPledgeDialog
+        open={!!fulfillPledgeGoal}
+        onOpenChange={(open) => !open && setFulfillPledgeGoal(null)}
+        goalId={fulfillPledgeGoal?.id || ''}
+        goalName={fulfillPledgeGoal?.name || ''}
+        monthlyPledge={fulfillPledgeGoal?.monthly_pledge || 0}
+        onSuccess={() => {
+          refetch();
+          setFulfillPledgeGoal(null);
+        }}
+      />
     </div>
   );
 };
