@@ -156,7 +156,7 @@ export const CreateGoalForm = ({
                 placeholder="10000"
                 min="1"
                 step="0.01"
-                value={formData.targetAmount || ''}
+                value={formData.targetAmount === 0 ? '' : formData.targetAmount}
                 onChange={(e) => handleInputChange('targetAmount', parseFloat(e.target.value) || 0)}
                 className={cn(errors.targetAmount && "border-red-500")}
               />
@@ -192,7 +192,7 @@ export const CreateGoalForm = ({
                 placeholder="0"
                 min="0"
                 step="0.01"
-                value={formData.initialAmount || ''}
+                value={formData.initialAmount === 0 ? '' : formData.initialAmount}
                 onChange={(e) => handleInputChange('initialAmount', parseFloat(e.target.value) || 0)}
                 className={cn(errors.initialAmount && "border-red-500")}
               />
@@ -210,7 +210,7 @@ export const CreateGoalForm = ({
                 placeholder="500"
                 min="1"
                 step="0.01"
-                value={formData.monthlyPledge || ''}
+                value={formData.monthlyPledge === 0 ? '' : formData.monthlyPledge}
                 onChange={(e) => handleInputChange('monthlyPledge', parseFloat(e.target.value) || 0)}
                 className={cn(errors.monthlyPledge && "border-red-500")}
               />
@@ -229,7 +229,7 @@ export const CreateGoalForm = ({
                 min="0"
                 max="100"
                 step="0.1"
-                value={formData.expectedReturnRate || ''}
+                value={formData.expectedReturnRate === 0 ? '' : formData.expectedReturnRate}
                 onChange={(e) => handleInputChange('expectedReturnRate', parseFloat(e.target.value) || 0)}
                 className={cn(errors.expectedReturnRate && "border-red-500")}
               />
