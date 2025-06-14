@@ -1,4 +1,3 @@
-
 /**
  * Financial calculation utilities for goal planning
  */
@@ -9,7 +8,7 @@
  * @param initialAmount - Starting amount already saved
  * @param targetDate - When you want to reach the goal
  * @param annualRate - Expected annual return rate (as percentage, e.g., 5 for 5%)
- * @returns Monthly payment needed
+ * @returns Monthly payment needed (rounded up to nearest dollar and verified to meet target date)
  */
 export const calculateMonthlyPayment = (
   targetAmount: number,
@@ -33,17 +32,44 @@ export const calculateMonthlyPayment = (
   }
 
   if (monthlyRate === 0) {
-    return remainingNeeded / monthsToTarget;
+    return Math.ceil(remainingNeeded / monthsToTarget);
   }
 
   // PMT calculation: PMT = PV * (r * (1 + r)^n) / ((1 + r)^n - 1)
   // But we need to solve for PMT where FV = PMT * (((1 + r)^n - 1) / r)
   // So PMT = FV / (((1 + r)^n - 1) / r)
-  const monthlyPayment = remainingNeeded / (
+  const calculatedPayment = remainingNeeded / (
     (Math.pow(1 + monthlyRate, monthsToTarget) - 1) / monthlyRate
   );
 
-  return Math.max(0, Math.round(monthlyPayment * 100) / 100);
+  // Round up to the nearest dollar
+  let roundedPayment = Math.ceil(calculatedPayment);
+
+  // Verify that this rounded payment will complete on or before target date
+  // If not, increment by $1 until it does
+  while (roundedPayment > 0) {
+    const completionDate = calculateCompletionDate(
+      targetAmount,
+      initialAmount,
+      roundedPayment,
+      annualRate
+    );
+
+    // If completion date is on or before target date, we're good
+    if (completionDate <= targetDate) {
+      break;
+    }
+
+    // Otherwise, increase by $1 and try again
+    roundedPayment += 1;
+
+    // Safety check to prevent infinite loop
+    if (roundedPayment > remainingNeeded) {
+      break;
+    }
+  }
+
+  return Math.max(0, roundedPayment);
 };
 
 /**
