@@ -23,6 +23,8 @@ export const calculateMonthlyPayment = (
   ));
 
   const monthlyRate = annualRate / 100 / 12;
+  
+  // Calculate future value of initial amount
   const futureValueOfInitial = initialAmount * Math.pow(1 + monthlyRate, monthsToTarget);
   const remainingNeeded = targetAmount - futureValueOfInitial;
 
@@ -34,7 +36,9 @@ export const calculateMonthlyPayment = (
     return remainingNeeded / monthsToTarget;
   }
 
-  // PMT calculation for annuity
+  // PMT calculation: PMT = PV * (r * (1 + r)^n) / ((1 + r)^n - 1)
+  // But we need to solve for PMT where FV = PMT * (((1 + r)^n - 1) / r)
+  // So PMT = FV / (((1 + r)^n - 1) / r)
   const monthlyPayment = remainingNeeded / (
     (Math.pow(1 + monthlyRate, monthsToTarget) - 1) / monthlyRate
   );
@@ -73,8 +77,19 @@ export const calculateCompletionDate = (
     return completionDate;
   }
 
-  let currentAmount = initialAmount;
+  // Use financial formula to calculate months needed
+  if (monthlyRate === 0) {
+    const monthsNeeded = (targetAmount - initialAmount) / monthlyContribution;
+    const completionDate = new Date();
+    completionDate.setMonth(completionDate.getMonth() + monthsNeeded);
+    return completionDate;
+  }
+
+  // For compound interest with regular payments
+  // We need to solve: FV = PV(1+r)^n + PMT * (((1+r)^n - 1) / r)
+  // This requires iterative solution or approximation
   let months = 0;
+  let currentAmount = initialAmount;
   const maxMonths = 1200; // 100 years maximum
 
   while (currentAmount < targetAmount && months < maxMonths) {
@@ -88,7 +103,7 @@ export const calculateCompletionDate = (
 };
 
 /**
- * Calculate total interest earned over the projection period
+ * Calculate total interest earned over the projection period to target completion
  * @param targetAmount - The goal amount to reach
  * @param initialAmount - Starting amount
  * @param monthlyContribution - Monthly contribution amount
@@ -108,13 +123,13 @@ export const calculateTotalInterest = (
     return 0;
   }
 
-  // Calculate the actual projected final amount using compound interest
+  // Calculate how many months it takes to reach the target
   let currentAmount = initialAmount;
   let months = 0;
   let totalContributions = initialAmount; // Start with initial amount
   const maxMonths = 1200; // 100 years maximum
 
-  // Simulate month by month growth
+  // Simulate month by month growth until we reach target
   while (currentAmount < targetAmount && months < maxMonths) {
     // Apply monthly interest first
     currentAmount = currentAmount * (1 + monthlyRate);
@@ -124,8 +139,29 @@ export const calculateTotalInterest = (
     months++;
   }
 
+  // Calculate the actual target amount reached (might be slightly over due to final contribution)
+  const finalAmount = Math.min(currentAmount, targetAmount);
+  
+  // If we went over target, adjust for the excess
+  if (currentAmount > targetAmount) {
+    const excessAmount = currentAmount - targetAmount;
+    totalContributions -= excessAmount; // Reduce total contributions by the excess
+  }
+
   // Total interest is the difference between final amount and total contributions
-  const totalInterest = Math.min(currentAmount, targetAmount) - totalContributions;
+  const totalInterest = finalAmount - totalContributions;
+
+  console.log('Interest calculation debug:', {
+    targetAmount,
+    initialAmount,
+    monthlyContribution,
+    annualRate,
+    monthlyRate,
+    months,
+    finalAmount,
+    totalContributions,
+    totalInterest
+  });
 
   // Ensure we don't return negative interest
   return Math.max(0, Math.round(totalInterest * 100) / 100);
