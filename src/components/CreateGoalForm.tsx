@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarIcon, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { calculateMonthlyPayment, calculateCompletionDate, calculateTotalInterest } from '@/utils/financialCalculations';
 
 interface CreateGoalFormProps {
   onSubmit: (goalData: GoalFormData) => void;
@@ -39,6 +40,34 @@ export const CreateGoalForm = ({
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof GoalFormData, string>>>({});
+  const [autoCalculatedPledge, setAutoCalculatedPledge] = useState<number | null>(null);
+
+  // Auto-calculate monthly pledge when target amount, date, initial amount, or return rate changes
+  useEffect(() => {
+    if (formData.targetAmount > 0 && formData.targetDate && formData.expectedReturnRate >= 0) {
+      const targetDate = new Date(formData.targetDate);
+      const today = new Date();
+      
+      if (targetDate > today) {
+        const calculated = calculateMonthlyPayment(
+          formData.targetAmount,
+          formData.initialAmount,
+          targetDate,
+          formData.expectedReturnRate
+        );
+        
+        setAutoCalculatedPledge(calculated);
+        
+        // Only auto-set if user hasn't manually entered a value
+        if (formData.monthlyPledge === 0 || formData.monthlyPledge === autoCalculatedPledge) {
+          setFormData(prev => ({
+            ...prev,
+            monthlyPledge: calculated
+          }));
+        }
+      }
+    }
+  }, [formData.targetAmount, formData.targetDate, formData.initialAmount, formData.expectedReturnRate]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof GoalFormData, string>> = {};
@@ -99,16 +128,33 @@ export const CreateGoalForm = ({
     }
   };
 
-  const calculateProjectedCompletion = () => {
-    if (formData.targetAmount > 0 && formData.monthlyPledge > 0) {
-      const remaining = formData.targetAmount - formData.initialAmount;
-      const monthsNeeded = Math.ceil(remaining / formData.monthlyPledge);
-      const projectedDate = new Date();
-      projectedDate.setMonth(projectedDate.getMonth() + monthsNeeded);
-      return projectedDate.toLocaleDateString();
+  const getProjectionData = () => {
+    if (formData.targetAmount > 0 && formData.monthlyPledge > 0 && formData.targetDate) {
+      const targetDate = new Date(formData.targetDate);
+      const estimatedCompletion = calculateCompletionDate(
+        formData.targetAmount,
+        formData.initialAmount,
+        formData.monthlyPledge,
+        formData.expectedReturnRate
+      );
+      
+      const totalInterest = calculateTotalInterest(
+        formData.targetAmount,
+        formData.initialAmount,
+        formData.monthlyPledge,
+        formData.expectedReturnRate
+      );
+
+      return {
+        estimatedCompletion: estimatedCompletion.toLocaleDateString(),
+        totalInterest,
+        isOnTrack: estimatedCompletion <= targetDate
+      };
     }
-    return 'Unable to calculate';
+    return null;
   };
+
+  const projectionData = getProjectionData();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -201,24 +247,6 @@ export const CreateGoalForm = ({
               )}
             </div>
 
-            {/* Monthly Pledge */}
-            <div className="space-y-2">
-              <Label htmlFor="monthlyPledge">Monthly Pledge Amount</Label>
-              <Input
-                id="monthlyPledge"
-                type="number"
-                placeholder="500"
-                min="1"
-                step="0.01"
-                value={formData.monthlyPledge === 0 ? '' : formData.monthlyPledge.toString()}
-                onChange={(e) => handleInputChange('monthlyPledge', parseFloat(e.target.value) || 0)}
-                className={cn(errors.monthlyPledge && "border-red-500")}
-              />
-              {errors.monthlyPledge && (
-                <p className="text-sm text-red-600">{errors.monthlyPledge}</p>
-              )}
-            </div>
-
             {/* Expected Return Rate */}
             <div className="space-y-2">
               <Label htmlFor="expectedReturnRate">Expected Annual Return Rate (%)</Label>
@@ -241,26 +269,79 @@ export const CreateGoalForm = ({
               </p>
             </div>
 
-            {/* Projection Summary */}
-            {formData.targetAmount > 0 && formData.monthlyPledge > 0 && (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h4 className="font-medium text-blue-900 mb-2">Quick Projection</h4>
-                <div className="space-y-1 text-sm text-blue-800">
+            {/* Monthly Pledge (Auto-calculated) */}
+            <div className="space-y-2">
+              <Label htmlFor="monthlyPledge">
+                Monthly Pledge Amount
+                {autoCalculatedPledge && (
+                  <span className="text-sm text-blue-600 ml-2">
+                    (Auto-calculated: {formatCurrency(autoCalculatedPledge)})
+                  </span>
+                )}
+              </Label>
+              <Input
+                id="monthlyPledge"
+                type="number"
+                placeholder="500"
+                min="1"
+                step="0.01"
+                value={formData.monthlyPledge === 0 ? '' : formData.monthlyPledge.toString()}
+                onChange={(e) => handleInputChange('monthlyPledge', parseFloat(e.target.value) || 0)}
+                className={cn(errors.monthlyPledge && "border-red-500")}
+              />
+              {errors.monthlyPledge && (
+                <p className="text-sm text-red-600">{errors.monthlyPledge}</p>
+              )}
+              <p className="text-sm text-gray-600">
+                This amount is auto-calculated based on your target. You can adjust it manually.
+              </p>
+            </div>
+
+            {/* Quick Projection Card */}
+            {projectionData && (
+              <div className={cn(
+                "p-4 rounded-lg border",
+                projectionData.isOnTrack 
+                  ? "bg-green-50 border-green-200" 
+                  : "bg-orange-50 border-orange-200"
+              )}>
+                <h4 className={cn(
+                  "font-medium mb-3",
+                  projectionData.isOnTrack ? "text-green-900" : "text-orange-900"
+                )}>
+                  Quick Projection
+                </h4>
+                <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Starting amount:</span>
+                    <span className="text-gray-700">Starting amount:</span>
                     <span className="font-medium">{formatCurrency(formData.initialAmount)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Monthly contribution:</span>
+                    <span className="text-gray-700">Monthly contribution:</span>
                     <span className="font-medium">{formatCurrency(formData.monthlyPledge)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Estimated completion:</span>
-                    <span className="font-medium">{calculateProjectedCompletion()}</span>
+                    <span className="text-gray-700">Projected interest:</span>
+                    <span className="font-medium">{formatCurrency(projectionData.totalInterest)}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span className="text-gray-700">Estimated completion:</span>
+                    <span className={cn(
+                      "font-medium",
+                      projectionData.isOnTrack ? "text-green-700" : "text-orange-700"
+                    )}>
+                      {projectionData.estimatedCompletion}
+                    </span>
                   </div>
                 </div>
-                <p className="text-xs text-blue-600 mt-2">
-                  * This is a simplified calculation. Actual projections include compound interest.
+                <p className={cn(
+                  "text-xs mt-3",
+                  projectionData.isOnTrack ? "text-green-600" : "text-orange-600"
+                )}>
+                  {projectionData.isOnTrack 
+                    ? "✓ On track to meet your target date!" 
+                    : "⚠ May complete after your target date. Consider increasing monthly contribution."
+                  }
                 </p>
               </div>
             )}

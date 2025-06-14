@@ -1,237 +1,147 @@
 
 /**
- * Financial calculation utilities for VisionFund
+ * Financial calculation utilities for goal planning
  */
-
-export interface FinancialProjection {
-  currentTotal: number;
-  progressPercentage: number;
-  projectedCompletionDate: Date;
-  onTrackStatus: 'on-track' | 'behind' | 'ahead';
-  monthsToCompletion: number;
-  projectedFinalAmount: number;
-}
-
-export interface Goal {
-  targetAmount: number;
-  targetDate: string;
-  initialAmount: number;
-  monthlyPledge: number;
-  expectedReturnRate: number;
-}
-
-export interface Contribution {
-  amount: number;
-  date: string;
-  confirmed: boolean;
-}
 
 /**
- * Calculate compound interest for a given principal, monthly contribution, annual rate, and time period
- * Formula: FV = PV × (1 + r)^n + PMT × [((1 + r)^n - 1) / r]
+ * Calculate the monthly payment needed to reach a target amount
+ * @param targetAmount - The goal amount to reach
+ * @param initialAmount - Starting amount already saved
+ * @param targetDate - When you want to reach the goal
+ * @param annualRate - Expected annual return rate (as percentage, e.g., 5 for 5%)
+ * @returns Monthly payment needed
  */
-export const calculateCompoundInterest = (
-  principal: number,
-  monthlyContribution: number,
-  annualRate: number,
-  months: number
+export const calculateMonthlyPayment = (
+  targetAmount: number,
+  initialAmount: number,
+  targetDate: Date,
+  annualRate: number
 ): number => {
-  if (months <= 0) return principal;
-  
+  const today = new Date();
+  const monthsToTarget = Math.max(1, Math.floor(
+    (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
+  ));
+
+  const monthlyRate = annualRate / 100 / 12;
+  const futureValueOfInitial = initialAmount * Math.pow(1 + monthlyRate, monthsToTarget);
+  const remainingNeeded = targetAmount - futureValueOfInitial;
+
+  if (remainingNeeded <= 0) {
+    return 0; // Initial amount already covers the target
+  }
+
+  if (monthlyRate === 0) {
+    return remainingNeeded / monthsToTarget;
+  }
+
+  // PMT calculation for annuity
+  const monthlyPayment = remainingNeeded / (
+    (Math.pow(1 + monthlyRate, monthsToTarget) - 1) / monthlyRate
+  );
+
+  return Math.max(0, Math.round(monthlyPayment * 100) / 100);
+};
+
+/**
+ * Calculate when the goal will be completed based on current contribution plan
+ * @param targetAmount - The goal amount to reach
+ * @param initialAmount - Starting amount
+ * @param monthlyContribution - Monthly contribution amount
+ * @param annualRate - Expected annual return rate (as percentage)
+ * @returns Estimated completion date
+ */
+export const calculateCompletionDate = (
+  targetAmount: number,
+  initialAmount: number,
+  monthlyContribution: number,
+  annualRate: number
+): Date => {
   const monthlyRate = annualRate / 100 / 12;
   
-  if (monthlyRate === 0) {
-    // No interest case
-    return principal + (monthlyContribution * months);
+  if (initialAmount >= targetAmount) {
+    return new Date(); // Already at target
   }
-  
-  // Future value of initial principal with compound interest
-  const futureValuePrincipal = principal * Math.pow(1 + monthlyRate, months);
-  
-  // Future value of monthly contributions (ordinary annuity)
-  const futureValueContributions = monthlyContribution * 
-    (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
-  
-  return futureValuePrincipal + futureValueContributions;
-};
 
-/**
- * Calculate current total including confirmed contributions and compound interest
- */
-export const calculateCurrentTotal = (
-  goal: Goal,
-  contributions: Contribution[]
-): number => {
-  const confirmedContributions = contributions.filter(c => c.confirmed);
-  const totalContributions = confirmedContributions.reduce((sum, c) => sum + c.amount, 0);
-  
-  // Calculate months since goal creation (approximate)
-  const monthsSinceStart = confirmedContributions.length;
-  
-  if (monthsSinceStart === 0) {
-    return goal.initialAmount;
+  if (monthlyContribution <= 0) {
+    // No contributions, just growth of initial amount
+    if (monthlyRate === 0) {
+      return new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100); // 100 years in future
+    }
+    const monthsNeeded = Math.log(targetAmount / initialAmount) / Math.log(1 + monthlyRate);
+    const completionDate = new Date();
+    completionDate.setMonth(completionDate.getMonth() + monthsNeeded);
+    return completionDate;
   }
-  
-  // Apply compound interest to initial amount + contributions
-  const currentTotal = calculateCompoundInterest(
-    goal.initialAmount,
-    totalContributions / monthsSinceStart, // Average monthly contribution
-    goal.expectedReturnRate,
-    monthsSinceStart
-  );
-  
-  return Math.max(currentTotal, goal.initialAmount + totalContributions);
-};
 
-/**
- * Calculate how many months needed to reach the target with current plan
- */
-export const calculateMonthsToTarget = (
-  currentAmount: number,
-  targetAmount: number,
-  monthlyContribution: number,
-  annualReturnRate: number
-): number => {
-  if (currentAmount >= targetAmount) return 0;
-  if (monthlyContribution <= 0) return Infinity;
-  
-  const monthlyRate = annualReturnRate / 100 / 12;
-  const remainingAmount = targetAmount - currentAmount;
-  
-  if (monthlyRate === 0) {
-    // No interest case
-    return Math.ceil(remainingAmount / monthlyContribution);
-  }
-  
-  // Using the future value formula to solve for n (number of periods)
-  // FV = PV × (1 + r)^n + PMT × [((1 + r)^n - 1) / r]
-  // This requires numerical methods or approximation
-  
-  // Approximation using iteration
+  let currentAmount = initialAmount;
   let months = 0;
-  let amount = currentAmount;
-  const maxMonths = 1000; // Safety limit
-  
-  while (amount < targetAmount && months < maxMonths) {
-    amount = amount * (1 + monthlyRate) + monthlyContribution;
+  const maxMonths = 1200; // 100 years maximum
+
+  while (currentAmount < targetAmount && months < maxMonths) {
+    currentAmount = currentAmount * (1 + monthlyRate) + monthlyContribution;
     months++;
   }
-  
-  return months;
+
+  const completionDate = new Date();
+  completionDate.setMonth(completionDate.getMonth() + months);
+  return completionDate;
 };
 
 /**
- * Generate complete financial projection for a goal
+ * Calculate total interest earned over the projection period
+ * @param targetAmount - The goal amount to reach
+ * @param initialAmount - Starting amount
+ * @param monthlyContribution - Monthly contribution amount
+ * @param annualRate - Expected annual return rate (as percentage)
+ * @returns Total interest earned
  */
-export const calculateFinancialProjection = (
-  goal: Goal,
-  contributions: Contribution[]
-): FinancialProjection => {
-  const currentTotal = calculateCurrentTotal(goal, contributions);
-  const progressPercentage = (currentTotal / goal.targetAmount) * 100;
-  
-  const monthsToCompletion = calculateMonthsToTarget(
-    currentTotal,
-    goal.targetAmount,
-    goal.monthlyPledge,
-    goal.expectedReturnRate
-  );
-  
-  // Calculate projected completion date
-  const projectedCompletionDate = new Date();
-  projectedCompletionDate.setMonth(projectedCompletionDate.getMonth() + monthsToCompletion);
-  
-  // Calculate projected final amount at target date
-  const targetDate = new Date(goal.targetDate);
-  const monthsToTargetDate = Math.max(0, 
-    (targetDate.getFullYear() - projectedCompletionDate.getFullYear()) * 12 + 
-    (targetDate.getMonth() - projectedCompletionDate.getMonth())
-  );
-  
-  const projectedFinalAmount = calculateCompoundInterest(
-    currentTotal,
-    goal.monthlyPledge,
-    goal.expectedReturnRate,
-    monthsToTargetDate
-  );
-  
-  // Determine on-track status
-  let onTrackStatus: 'on-track' | 'behind' | 'ahead';
-  const targetDate_ms = new Date(goal.targetDate).getTime();
-  const projectedDate_ms = projectedCompletionDate.getTime();
-  const timeDifference = projectedDate_ms - targetDate_ms;
-  const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-  
-  if (Math.abs(daysDifference) <= 30) {
-    onTrackStatus = 'on-track';
-  } else if (daysDifference < -30) {
-    onTrackStatus = 'ahead';
-  } else {
-    onTrackStatus = 'behind';
-  }
-  
-  return {
-    currentTotal,
-    progressPercentage: Math.min(progressPercentage, 100),
-    projectedCompletionDate,
-    onTrackStatus,
-    monthsToCompletion,
-    projectedFinalAmount
-  };
-};
-
-/**
- * Calculate required monthly contribution to meet goal by target date
- */
-export const calculateRequiredMonthlyContribution = (
-  currentAmount: number,
+export const calculateTotalInterest = (
   targetAmount: number,
-  monthsRemaining: number,
-  annualReturnRate: number
+  initialAmount: number,
+  monthlyContribution: number,
+  annualRate: number
 ): number => {
-  if (monthsRemaining <= 0 || currentAmount >= targetAmount) return 0;
-  
-  const monthlyRate = annualReturnRate / 100 / 12;
-  const remainingAmount = targetAmount - currentAmount;
-  
+  const completionDate = calculateCompletionDate(targetAmount, initialAmount, monthlyContribution, annualRate);
+  const today = new Date();
+  const monthsToCompletion = Math.floor(
+    (completionDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
+  );
+
+  const totalContributions = initialAmount + (monthlyContribution * monthsToCompletion);
+  const totalInterest = targetAmount - totalContributions;
+
+  return Math.max(0, Math.round(totalInterest * 100) / 100);
+};
+
+/**
+ * Calculate future value of a series of payments with compound interest
+ * @param monthlyPayment - Monthly payment amount
+ * @param months - Number of months
+ * @param monthlyRate - Monthly interest rate (as decimal)
+ * @returns Future value
+ */
+export const calculateFutureValue = (
+  monthlyPayment: number,
+  months: number,
+  monthlyRate: number
+): number => {
   if (monthlyRate === 0) {
-    return remainingAmount / monthsRemaining;
+    return monthlyPayment * months;
   }
   
-  // PMT = (FV - PV × (1 + r)^n) / [((1 + r)^n - 1) / r]
-  const futureValueOfCurrent = currentAmount * Math.pow(1 + monthlyRate, monthsRemaining);
-  const remainingAfterInterest = targetAmount - futureValueOfCurrent;
-  const annuityFactor = (Math.pow(1 + monthlyRate, monthsRemaining) - 1) / monthlyRate;
-  
-  return Math.max(0, remainingAfterInterest / annuityFactor);
+  return monthlyPayment * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
 };
 
 /**
- * Format currency for display
+ * Calculate the progress percentage towards a goal
+ * @param currentAmount - Current saved amount
+ * @param targetAmount - Target goal amount
+ * @returns Progress percentage (0-100)
  */
-export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
-
-/**
- * Format percentage for display
- */
-export const formatPercentage = (value: number, decimals: number = 1): string => {
-  return `${value.toFixed(decimals)}%`;
-};
-
-/**
- * Calculate interest earned over a period
- */
-export const calculateInterestEarned = (
-  principal: number,
-  contributions: number,
-  finalAmount: number
+export const calculateProgressPercentage = (
+  currentAmount: number,
+  targetAmount: number
 ): number => {
-  return Math.max(0, finalAmount - principal - contributions);
+  if (targetAmount <= 0) return 0;
+  return Math.min(100, Math.max(0, (currentAmount / targetAmount) * 100));
 };
