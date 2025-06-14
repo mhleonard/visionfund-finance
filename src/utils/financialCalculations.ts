@@ -101,15 +101,33 @@ export const calculateTotalInterest = (
   monthlyContribution: number,
   annualRate: number
 ): number => {
-  const completionDate = calculateCompletionDate(targetAmount, initialAmount, monthlyContribution, annualRate);
-  const today = new Date();
-  const monthsToCompletion = Math.floor(
-    (completionDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
-  );
+  const monthlyRate = annualRate / 100 / 12;
+  
+  // If already at target, no interest calculation needed
+  if (initialAmount >= targetAmount) {
+    return 0;
+  }
 
-  const totalContributions = initialAmount + (monthlyContribution * monthsToCompletion);
-  const totalInterest = targetAmount - totalContributions;
+  // Calculate the actual projected final amount using compound interest
+  let currentAmount = initialAmount;
+  let months = 0;
+  let totalContributions = initialAmount; // Start with initial amount
+  const maxMonths = 1200; // 100 years maximum
 
+  // Simulate month by month growth
+  while (currentAmount < targetAmount && months < maxMonths) {
+    // Apply monthly interest first
+    currentAmount = currentAmount * (1 + monthlyRate);
+    // Add monthly contribution
+    currentAmount += monthlyContribution;
+    totalContributions += monthlyContribution;
+    months++;
+  }
+
+  // Total interest is the difference between final amount and total contributions
+  const totalInterest = Math.min(currentAmount, targetAmount) - totalContributions;
+
+  // Ensure we don't return negative interest
   return Math.max(0, Math.round(totalInterest * 100) / 100);
 };
 
