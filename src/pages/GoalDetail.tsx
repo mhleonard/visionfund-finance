@@ -16,18 +16,8 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Goal {
-  id: string;
-  name: string;
-  target_amount: number;
-  target_date: string;
-  initial_amount: number;
-  monthly_pledge: number;
-  expected_return_rate: number;
-  current_total: number;
-  created_at: string;
-}
+import { calculateGoalMetrics } from '@/services/goalCalculations';
+import type { Goal, GoalWithCalculations } from '@/types/goal';
 
 interface Contribution {
   id: string;
@@ -49,7 +39,8 @@ const GoalDetail = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [goal, setGoal] = useState<Goal | null>(null);
+  const [goalData, setGoalData] = useState<Goal | null>(null);
+  const [goalWithCalculations, setGoalWithCalculations] = useState<GoalWithCalculations | null>(null);
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFulfillPledge, setShowFulfillPledge] = useState(false);
@@ -64,7 +55,7 @@ const GoalDetail = () => {
       setLoading(true);
       
       // Fetch goal data
-      const { data: goalData, error: goalError } = await supabase
+      const { data: rawGoalData, error: goalError } = await supabase
         .from('goals')
         .select('*')
         .eq('id', id)
@@ -72,7 +63,7 @@ const GoalDetail = () => {
         .single();
 
       if (goalError) throw goalError;
-      if (!goalData) {
+      if (!rawGoalData) {
         toast({
           title: "Goal not found",
           description: "The goal you're looking for doesn't exist.",
@@ -91,7 +82,11 @@ const GoalDetail = () => {
 
       if (contributionsError) throw contributionsError;
 
-      setGoal(goalData);
+      // Calculate goal metrics using the same service as homepage
+      const goalWithMetrics = calculateGoalMetrics(rawGoalData);
+
+      setGoalData(rawGoalData);
+      setGoalWithCalculations(goalWithMetrics);
       setContributions(contributionsData || []);
     } catch (error) {
       console.error('Error fetching goal data:', error);
@@ -102,6 +97,33 @@ const GoalDetail = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Use the shared status functions from GoalCard
+  const getStatusColor = (status: GoalWithCalculations['onTrackStatus']) => {
+    switch (status) {
+      case 'on-track':
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800';
+      case 'ahead':
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
+      case 'behind':
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600';
+    }
+  };
+
+  const getStatusText = (status: GoalWithCalculations['onTrackStatus']) => {
+    switch (status) {
+      case 'on-track':
+        return 'On Track';
+      case 'ahead':
+        return 'Ahead of Schedule';
+      case 'behind':
+        return 'Behind Schedule';
+      default:
+        return 'Unknown';
     }
   };
 
@@ -124,34 +146,19 @@ const GoalDetail = () => {
     );
   }
 
-  if (!goal) return null;
+  if (!goalData || !goalWithCalculations) return null;
 
-  const progressPercentage = Math.min(100, (goal.current_total / goal.target_amount) * 100);
-  const targetDate = new Date(goal.target_date);
+  const targetDate = new Date(goalData.target_date);
   const today = new Date();
   const daysRemaining = Math.max(0, Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
   
   const confirmedContributions = contributions.filter(c => c.is_confirmed);
   const totalContributions = confirmedContributions.reduce((sum, c) => sum + c.amount, 0);
-  const projectedInterest = goal.current_total - (goal.initial_amount || 0) - totalContributions;
+  const projectedInterest = goalData.current_total - (goalData.initial_amount || 0) - totalContributions;
 
   // Calculate contribution start date for display
-  const contributionStartDate = getContributionStartDate(goal.created_at);
+  const contributionStartDate = getContributionStartDate(goalData.created_at);
   const contributionStarted = today >= contributionStartDate;
-
-  const getStatusColor = () => {
-    if (progressPercentage >= 100) return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800';
-    if (progressPercentage >= 75) return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
-    if (progressPercentage >= 50) return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800';
-    return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
-  };
-
-  const getStatusText = () => {
-    if (progressPercentage >= 100) return 'Goal Achieved';
-    if (progressPercentage >= 75) return 'On Track';
-    if (progressPercentage >= 50) return 'Making Progress';
-    return 'Behind Schedule';
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -162,20 +169,20 @@ const GoalDetail = () => {
             <div className="flex items-center space-x-4">
               <Button 
                 variant="ghost" 
-                onClick={() => navigate('/')} 
+                onClick={() => navigate('/dashboard')} 
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                 aria-label="Go back to dashboard"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{goal.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{goalData.name}</h1>
                 <div className="flex items-center space-x-4 mt-1">
-                  <Badge className={cn("border", getStatusColor())}>
-                    {getStatusText()}
+                  <Badge className={cn("border", getStatusColor(goalWithCalculations.onTrackStatus))}>
+                    {getStatusText(goalWithCalculations.onTrackStatus)}
                   </Badge>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {Math.round(progressPercentage)}% complete
+                    {Math.round(goalWithCalculations.progressPercentage)}% complete
                   </span>
                 </div>
               </div>
@@ -212,10 +219,10 @@ const GoalDetail = () => {
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Amount Saved</p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(goal.current_total)}
+                      {formatCurrency(goalData.current_total)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">
-                      Target: {formatCurrency(goal.target_amount)}
+                      Target: {formatCurrency(goalData.target_amount)}
                     </p>
                   </div>
                   <div className="h-12 w-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
@@ -231,7 +238,7 @@ const GoalDetail = () => {
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Pledge</p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(goal.monthly_pledge)}
+                      {formatCurrency(goalData.monthly_pledge)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">
                       {contributionStarted ? 'Active' : `Starts ${contributionStartDate.toLocaleDateString('en-US', { month: 'short' })}`}
@@ -253,7 +260,7 @@ const GoalDetail = () => {
                       {formatCurrency(Math.max(0, projectedInterest))}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">
-                      At {goal.expected_return_rate || 0}% annual
+                      At {goalData.expected_return_rate || 0}% annual
                     </p>
                   </div>
                   <div className="h-12 w-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
@@ -294,7 +301,7 @@ const GoalDetail = () => {
           </CardHeader>
           <CardContent>
             <EnhancedGoalProgressChart 
-              goal={goal} 
+              goal={goalData} 
               contributions={contributions}
             />
           </CardContent>
@@ -306,16 +313,16 @@ const GoalDetail = () => {
             <CardTitle className="text-gray-900 dark:text-white">Contribution Timeline</CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
               Complete history of your savings journey, organized by year
-              {goal.initial_amount > 0 && (
+              {goalData.initial_amount > 0 && (
                 <span className="block text-blue-600 dark:text-blue-400 mt-1">
-                  🏦 Includes your initial deposit of {formatCurrency(goal.initial_amount)}
+                  🏦 Includes your initial deposit of {formatCurrency(goalData.initial_amount)}
                 </span>
               )}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ImprovedContributionHistory 
-              goal={goal}
+              goal={goalData}
               contributions={contributions}
             />
           </CardContent>
@@ -326,10 +333,10 @@ const GoalDetail = () => {
       <FulfillPledgeDialog
         open={showFulfillPledge}
         onOpenChange={setShowFulfillPledge}
-        goalId={goal.id}
-        goalName={goal.name}
-        monthlyPledge={goal.monthly_pledge}
-        goalCreatedAt={goal.created_at}
+        goalId={goalData.id}
+        goalName={goalData.name}
+        monthlyPledge={goalData.monthly_pledge}
+        goalCreatedAt={goalData.created_at}
         contributions={contributions}
         onSuccess={fetchGoalData}
       />
