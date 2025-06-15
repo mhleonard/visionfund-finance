@@ -124,6 +124,7 @@ export const CreateGoalForm = ({
             formData.targetAmount,
             formData.initialAmount,
             targetDate,
+            today.toISOString(), // Fix: Pass goalCreatedAt as string
             formData.expectedReturnRate
           );
           

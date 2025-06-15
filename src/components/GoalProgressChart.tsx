@@ -239,7 +239,7 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
             y={goal.target_amount} 
             stroke="#ef4444" 
             strokeDasharray="5 5" 
-            label={{ value: `Target: ${formatCurrency(goal.target_amount)}`, position: "topRight" }}
+            label={{ value: `Target: ${formatCurrency(goal.target_amount)}`, position: "top" }}
           />
           
           {/* Projected progress area */}
