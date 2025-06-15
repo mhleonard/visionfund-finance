@@ -8,11 +8,8 @@ import { CalendarIcon, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
   calculateMonthlyPayment, 
-  getProjectionData, 
-  formatCurrency,
-  validateGoalData,
-  type PaymentCalculationParams
-} from '@/utils/financialUtils';
+  formatCurrency
+} from '@/utils/financialCalculations';
 
 interface CreateGoalFormProps {
   onSubmit: (goalData: GoalFormData) => void;
@@ -29,6 +26,73 @@ export interface GoalFormData {
   monthlyPledge: number;
   expectedReturnRate: number;
 }
+
+// Simple validation function
+const validateGoalData = (formData: GoalFormData): string[] => {
+  const errors: string[] = [];
+  
+  if (!formData.name.trim()) {
+    errors.push('Goal name is required');
+  }
+  
+  if (formData.targetAmount <= 0) {
+    errors.push('Target amount must be greater than 0');
+  }
+  
+  if (!formData.targetDate) {
+    errors.push('Target date is required');
+  } else {
+    const targetDate = new Date(formData.targetDate);
+    const today = new Date();
+    if (targetDate <= today) {
+      errors.push('Target date must be in the future');
+    }
+  }
+  
+  if (formData.monthlyPledge <= 0) {
+    errors.push('Monthly pledge must be greater than 0');
+  }
+  
+  if (formData.expectedReturnRate < 0 || formData.expectedReturnRate > 100) {
+    errors.push('Expected return rate must be between 0 and 100');
+  }
+  
+  return errors;
+};
+
+// Simple projection calculation
+const getProjectionData = (
+  targetAmount: number,
+  initialAmount: number,
+  monthlyPledge: number,
+  targetDate: Date,
+  expectedReturnRate: number
+) => {
+  const today = new Date();
+  const monthsToTarget = Math.max(1, 
+    (targetDate.getFullYear() - today.getFullYear()) * 12 + 
+    (targetDate.getMonth() - today.getMonth())
+  );
+  
+  const monthlyRate = expectedReturnRate / 100 / 12;
+  let projectedAmount = initialAmount;
+  
+  // Simple compound calculation
+  for (let i = 0; i < monthsToTarget; i++) {
+    projectedAmount = projectedAmount * (1 + monthlyRate) + monthlyPledge;
+  }
+  
+  const totalContributions = monthlyPledge * monthsToTarget;
+  const totalInterest = projectedAmount - initialAmount - totalContributions;
+  const isOnTrack = projectedAmount >= targetAmount;
+  
+  return {
+    totalInterest,
+    monthsToCompletion: monthsToTarget,
+    estimatedCompletion: targetDate.toLocaleDateString(),
+    isOnTrack
+  };
+};
 
 export const CreateGoalForm = ({ 
   onSubmit, 
@@ -56,12 +120,12 @@ export const CreateGoalForm = ({
         const today = new Date();
         
         if (targetDate > today) {
-          const calculated = calculateMonthlyPayment({
-            targetAmount: formData.targetAmount,
-            initialAmount: formData.initialAmount,
+          const calculated = calculateMonthlyPayment(
+            formData.targetAmount,
+            formData.initialAmount,
             targetDate,
-            annualRate: formData.expectedReturnRate
-          });
+            formData.expectedReturnRate
+          );
           
           setAutoCalculatedPledge(calculated);
           

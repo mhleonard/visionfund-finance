@@ -1,5 +1,51 @@
 
-import { pv, fv, pmt, nper } from 'financial';
+/**
+ * Calculate future value using compound interest formula
+ * FV = PV * (1 + r)^n
+ */
+const calculateFutureValue = (
+  presentValue: number,
+  rate: number,
+  periods: number
+): number => {
+  if (rate === 0) return presentValue;
+  return presentValue * Math.pow(1 + rate, periods);
+};
+
+/**
+ * Calculate payment using PMT formula
+ * PMT = FV * r / ((1 + r)^n - 1)
+ */
+const calculatePayment = (
+  futureValue: number,
+  rate: number,
+  periods: number
+): number => {
+  if (rate === 0) return futureValue / periods;
+  return futureValue * rate / (Math.pow(1 + rate, periods) - 1);
+};
+
+/**
+ * Calculate number of periods using NPER formula
+ * NPER = ln(FV / PV) / ln(1 + r) for single payment
+ * For annuity: more complex calculation
+ */
+const calculatePeriods = (
+  rate: number,
+  payment: number,
+  presentValue: number,
+  futureValue: number
+): number => {
+  if (rate === 0) {
+    return (futureValue - presentValue) / payment;
+  }
+  
+  // Using the NPER formula for annuities
+  const numerator = Math.log((payment + futureValue * rate) / (payment + presentValue * rate));
+  const denominator = Math.log(1 + rate);
+  
+  return numerator / denominator;
+};
 
 /**
  * Calculate the monthly payment needed to reach a target amount
@@ -17,13 +63,13 @@ export const calculateMonthlyPayment = (
   );
   
   const monthlyRate = annualRate / 100 / 12;
-  const futureValueOfInitial = fv(monthlyRate, monthsToTarget, 0, -initialAmount);
+  const futureValueOfInitial = calculateFutureValue(initialAmount, monthlyRate, monthsToTarget);
   const remainingNeeded = targetAmount - futureValueOfInitial;
 
   if (remainingNeeded <= 0) return 0;
 
-  // Use PMT function to calculate payment
-  const payment = -pmt(monthlyRate, monthsToTarget, 0, remainingNeeded);
+  // Calculate payment needed for remaining amount
+  const payment = calculatePayment(remainingNeeded, monthlyRate, monthsToTarget);
   return Math.max(0, Math.ceil(payment));
 };
 
@@ -53,8 +99,8 @@ export const calculateCompletionDate = (
     return completionDate;
   }
 
-  // Use NPER function to calculate periods needed
-  const months = nper(monthlyRate, -monthlyContribution, -initialAmount, targetAmount);
+  // Calculate periods needed using NPER formula
+  const months = calculatePeriods(monthlyRate, monthlyContribution, initialAmount, targetAmount);
   
   const completionDate = new Date();
   completionDate.setMonth(completionDate.getMonth() + Math.ceil(months));
