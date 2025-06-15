@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,11 +15,6 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { GoalProgressChart } from '@/components/GoalProgressChart';
-import { ContributionHistory } from '@/components/ContributionHistory';
-import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
-import { formatCurrency } from '@/utils/financialCalculations';
-import { cn } from '@/lib/utils';
 
 interface Goal {
   id: string;
@@ -41,6 +35,12 @@ interface Contribution {
   is_confirmed: boolean;
   created_at: string;
 }
+
+import { GoalProgressChart } from '@/components/GoalProgressChart';
+import { ImprovedContributionHistory } from '@/components/ImprovedContributionHistory';
+import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
+import { formatCurrency, getContributionStartDate } from '@/utils/financialCalculations';
+import { cn } from '@/lib/utils';
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -134,6 +134,10 @@ const GoalDetail = () => {
   const totalContributions = confirmedContributions.reduce((sum, c) => sum + c.amount, 0);
   const projectedInterest = goal.current_total - (goal.initial_amount || 0) - totalContributions;
 
+  // Calculate contribution start date for display
+  const contributionStartDate = getContributionStartDate(goal.created_at);
+  const contributionStarted = today >= contributionStartDate;
+
   const getStatusColor = () => {
     if (progressPercentage >= 100) return 'bg-green-100 text-green-800 border-green-200';
     if (progressPercentage >= 75) return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -167,6 +171,11 @@ const GoalDetail = () => {
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     {Math.round(progressPercentage)}% complete
                   </span>
+                  {!contributionStarted && (
+                    <Badge variant="outline" className="text-xs">
+                      Contributions start {contributionStartDate.toLocaleDateString()}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -201,6 +210,9 @@ const GoalDetail = () => {
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {formatCurrency(goal.current_total)}
                   </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    Initial: {formatCurrency(goal.initial_amount || 0)}
+                  </p>
                 </div>
                 <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
                   <DollarSign className="h-6 w-6 text-green-600" />
@@ -217,6 +229,9 @@ const GoalDetail = () => {
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {formatCurrency(goal.monthly_pledge)}
                   </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    {contributionStarted ? 'Active' : `Starts ${contributionStartDate.toLocaleDateString('en-US', { month: 'short' })}`}
+                  </p>
                 </div>
                 <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
                   <Calendar className="h-6 w-6 text-blue-600" />
@@ -229,9 +244,12 @@ const GoalDetail = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Projected Interest</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Interest Earned</p>
                   <p className="text-2xl font-bold text-green-600">
                     {formatCurrency(Math.max(0, projectedInterest))}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    At {goal.expected_return_rate || 0}% annual
                   </p>
                 </div>
                 <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -249,6 +267,9 @@ const GoalDetail = () => {
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {daysRemaining}
                   </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    Until {targetDate.toLocaleDateString()}
+                  </p>
                 </div>
                 <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
                   <Target className="h-6 w-6 text-orange-600" />
@@ -262,7 +283,14 @@ const GoalDetail = () => {
         <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
           <CardHeader>
             <CardTitle>Progress Chart</CardTitle>
-            <CardDescription>Track your journey to your financial goal</CardDescription>
+            <CardDescription>
+              Track your journey to your financial goal
+              {!contributionStarted && (
+                <span className="block text-amber-600 dark:text-amber-400 mt-1">
+                  📅 Monthly contributions will begin on {contributionStartDate.toLocaleDateString()}
+                </span>
+              )}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <GoalProgressChart 
@@ -272,14 +300,21 @@ const GoalDetail = () => {
           </CardContent>
         </Card>
 
-        {/* Contribution History */}
+        {/* Enhanced Contribution History */}
         <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
           <CardHeader>
-            <CardTitle>Contribution History</CardTitle>
-            <CardDescription>Monthly breakdown of your pledges and contributions</CardDescription>
+            <CardTitle>Contribution Timeline</CardTitle>
+            <CardDescription>
+              Complete history of your savings journey, organized by year
+              {goal.initial_amount > 0 && (
+                <span className="block text-blue-600 dark:text-blue-400 mt-1">
+                  🏦 Includes your initial deposit of {formatCurrency(goal.initial_amount)}
+                </span>
+              )}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <ContributionHistory 
+            <ImprovedContributionHistory 
               goal={goal}
               contributions={contributions}
             />

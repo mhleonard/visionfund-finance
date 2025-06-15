@@ -12,7 +12,7 @@ import {
   AreaChart,
   ReferenceLine
 } from 'recharts';
-import { formatCurrency } from '@/utils/financialCalculations';
+import { formatCurrency, getContributionStartDate } from '@/utils/financialCalculations';
 
 interface Goal {
   id: string;
@@ -41,24 +41,40 @@ interface GoalProgressChartProps {
 
 interface ChartDataPoint {
   month: string;
-  actual: number;
+  actual: number | null;
   projected: number;
   contribution?: number;
   isConfirmed?: boolean;
+  isInitialAmount?: boolean;
 }
 
 export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProps) => {
   const chartData = useMemo(() => {
-    const startDate = new Date(goal.created_at);
+    const goalCreatedDate = new Date(goal.created_at);
+    const contributionStartDate = getContributionStartDate(goal.created_at);
     const targetDate = new Date(goal.target_date);
     const today = new Date();
     
     const data: ChartDataPoint[] = [];
-    let currentAmount = goal.initial_amount || 0;
-    let projectedAmount = goal.initial_amount || 0;
+    let actualCumulative = goal.initial_amount || 0;
     
-    // Create monthly data points from start to target date
-    const currentDate = new Date(startDate);
+    // Add initial amount as first data point
+    if (goal.initial_amount > 0) {
+      data.push({
+        month: goalCreatedDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          year: 'numeric' 
+        }),
+        actual: goal.initial_amount,
+        projected: goal.initial_amount,
+        contribution: goal.initial_amount,
+        isConfirmed: true,
+        isInitialAmount: true
+      });
+    }
+    
+    // Create monthly data points from contribution start to target date
+    const currentDate = new Date(contributionStartDate);
     currentDate.setDate(1); // Start of month
     
     while (currentDate <= targetDate) {
@@ -78,30 +94,36 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
       );
       
       // Update actual amount with confirmed contributions
-      if (monthContributions.length > 0) {
-        currentAmount += monthlyContributionAmount;
+      if (monthContributions.length > 0 && currentDate <= today) {
+        actualCumulative += monthlyContributionAmount;
       }
       
-      // Calculate projected amount (theoretical progress)
-      const monthsFromStart = Math.max(0, 
-        (currentDate.getFullYear() - startDate.getFullYear()) * 12 + 
-        (currentDate.getMonth() - startDate.getMonth())
+      // Calculate projected amount (theoretical progress from contribution start)
+      const monthsFromContributionStart = Math.max(0, 
+        (currentDate.getFullYear() - contributionStartDate.getFullYear()) * 12 + 
+        (currentDate.getMonth() - contributionStartDate.getMonth())
       );
       
       const monthlyRate = (goal.expected_return_rate || 0) / 100 / 12;
-      projectedAmount = (goal.initial_amount || 0) + 
-        (goal.monthly_pledge * monthsFromStart);
+      let projectedAmount = goal.initial_amount || 0;
       
-      // Apply compound interest
+      // Apply compound interest and monthly contributions
       if (monthlyRate > 0) {
-        projectedAmount = (goal.initial_amount || 0) * Math.pow(1 + monthlyRate, monthsFromStart) +
-          goal.monthly_pledge * (Math.pow(1 + monthlyRate, monthsFromStart) - 1) / monthlyRate;
+        // Future value of initial amount
+        const futureValueInitial = (goal.initial_amount || 0) * Math.pow(1 + monthlyRate, monthsFromContributionStart + 1);
+        // Future value of monthly contributions (annuity)
+        const futureValueContributions = monthsFromContributionStart > 0 
+          ? goal.monthly_pledge * (Math.pow(1 + monthlyRate, monthsFromContributionStart) - 1) / monthlyRate
+          : 0;
+        projectedAmount = futureValueInitial + futureValueContributions;
+      } else {
+        projectedAmount = (goal.initial_amount || 0) + (goal.monthly_pledge * monthsFromContributionStart);
       }
       
       data.push({
         month: monthDisplay,
-        actual: currentDate <= today ? currentAmount : null,
-        projected: Math.min(projectedAmount, goal.target_amount),
+        actual: currentDate <= today ? actualCumulative : null,
+        projected: Math.min(projectedAmount, goal.target_amount * 1.1), // Cap at 110% of target
         contribution: monthlyContributionAmount > 0 ? monthlyContributionAmount : undefined,
         isConfirmed: monthContributions.some(c => c.is_confirmed)
       });
@@ -130,7 +152,7 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
                 {entry.dataKey === 'actual' ? 'Actual' : 'Projected'}:
               </span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {formatCurrency(entry.value)}
+                {entry.value ? formatCurrency(entry.value) : 'N/A'}
               </span>
             </div>
           ))}
@@ -139,11 +161,13 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
             <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
               <div className="flex items-center space-x-2">
                 <span className={`text-xs px-2 py-1 rounded-full ${
-                  data.isConfirmed 
+                  data.isInitialAmount
+                    ? 'bg-blue-100 text-blue-800'
+                    : data.isConfirmed 
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-yellow-100 text-yellow-800'
                 }`}>
-                  {data.isConfirmed ? '✅ Confirmed' : '⏳ Pending'}
+                  {data.isInitialAmount ? '🏦 Initial' : data.isConfirmed ? '✅ Confirmed' : '⏳ Pending'}
                 </span>
                 <span className="text-sm font-medium">
                   {formatCurrency(data.contribution)}
@@ -160,12 +184,13 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (payload.contribution) {
+      const color = payload.isInitialAmount ? '#3b82f6' : payload.isConfirmed ? '#10b981' : '#f59e0b';
       return (
         <circle
           cx={cx}
           cy={cy}
-          r={6}
-          fill={payload.isConfirmed ? '#10b981' : '#f59e0b'}
+          r={payload.isInitialAmount ? 8 : 6}
+          fill={color}
           stroke="#fff"
           strokeWidth={2}
           className="drop-shadow-sm hover:r-8 transition-all duration-200"
@@ -197,6 +222,7 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
             tick={{ fontSize: 12 }}
             axisLine={false}
             tickLine={false}
+            interval="preserveStartEnd"
           />
           <YAxis 
             stroke="#6b7280"
@@ -213,7 +239,7 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
             y={goal.target_amount} 
             stroke="#ef4444" 
             strokeDasharray="5 5" 
-            label={{ value: "Target", position: "right" }}
+            label={{ value: `Target: ${formatCurrency(goal.target_amount)}`, position: "topRight" }}
           />
           
           {/* Projected progress area */}
