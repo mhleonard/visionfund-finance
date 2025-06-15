@@ -26,13 +26,21 @@ export const FulfillPledgeDialog = ({
   monthlyPledge,
   onSuccess
 }: FulfillPledgeDialogProps) => {
-  const [amount, setAmount] = useState(monthlyPledge.toString());
+  const [amount, setAmount] = useState(monthlyPledge.toFixed(2));
   const [contributionDate, setContributionDate] = useState(
     new Date().toISOString().split('T')[0]
   );
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Reset form when dialog opens with new goal
+  useState(() => {
+    if (open) {
+      setAmount(monthlyPledge.toFixed(2));
+      setContributionDate(new Date().toISOString().split('T')[0]);
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +70,7 @@ export const FulfillPledgeDialog = ({
       onOpenChange(false);
       
       // Reset form
-      setAmount(monthlyPledge.toString());
+      setAmount(monthlyPledge.toFixed(2));
       setContributionDate(new Date().toISOString().split('T')[0]);
     } catch (error) {
       console.error('Error fulfilling pledge:', error);
