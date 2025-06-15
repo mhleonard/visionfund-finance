@@ -1,67 +1,23 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { calculateProgressPercentage, calculateCompletionDate } from '@/utils/financialCalculations';
-import type { Database } from '@/integrations/supabase/types';
+import { calculateGoalMetrics } from '@/services/goalCalculations';
+import { 
+  fetchGoalsFromDb, 
+  createGoalInDb, 
+  updateGoalInDb, 
+  deleteGoalFromDb 
+} from '@/services/goalApi';
+import type { GoalWithCalculations, GoalInsert, GoalUpdate } from '@/types/goal';
 
-type Goal = Database['public']['Tables']['goals']['Row'];
-type GoalInsert = Database['public']['Tables']['goals']['Insert'];
-type GoalUpdate = Database['public']['Tables']['goals']['Update'];
-
-export interface GoalWithCalculations extends Goal {
-  progressPercentage: number;
-  onTrackStatus: 'on-track' | 'behind' | 'ahead';
-  projectedCompletionDate: string;
-}
+export { type GoalWithCalculations } from '@/types/goal';
 
 export const useGoals = () => {
   const [goals, setGoals] = useState<GoalWithCalculations[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
-
-  const calculateGoalMetrics = (goal: Goal): GoalWithCalculations => {
-    try {
-      const progressPercentage = calculateProgressPercentage(
-        goal.current_total || 0,
-        goal.target_amount
-      );
-
-      // Calculate projected completion date
-      const targetDate = new Date(goal.target_date);
-      const projectedDate = calculateCompletionDate(
-        goal.target_amount,
-        goal.initial_amount || 0,
-        goal.monthly_pledge,
-        goal.expected_return_rate || 0
-      );
-      
-      // Determine status
-      let onTrackStatus: 'on-track' | 'behind' | 'ahead' = 'on-track';
-      if (projectedDate > targetDate) {
-        onTrackStatus = 'behind';
-      } else if (projectedDate < targetDate && progressPercentage > 50) {
-        onTrackStatus = 'ahead';
-      }
-
-      return {
-        ...goal,
-        progressPercentage,
-        onTrackStatus,
-        projectedCompletionDate: projectedDate.toISOString().split('T')[0]
-      };
-    } catch (error) {
-      console.error('Error calculating goal metrics:', error);
-      return {
-        ...goal,
-        progressPercentage: 0,
-        onTrackStatus: 'on-track' as const,
-        projectedCompletionDate: goal.target_date
-      };
-    }
-  };
 
   const fetchGoals = async () => {
     if (!user) {
@@ -72,17 +28,8 @@ export const useGoals = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('goals')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      const goalsWithCalculations = (data || []).map(calculateGoalMetrics);
+      const data = await fetchGoalsFromDb(user.id);
+      const goalsWithCalculations = data.map(calculateGoalMetrics);
       setGoals(goalsWithCalculations);
     } catch (error) {
       console.error('Error fetching goals:', error);
@@ -108,29 +55,11 @@ export const useGoals = () => {
     }
 
     try {
-      if (!goalData.name || goalData.target_amount <= 0 || goalData.monthly_pledge <= 0) {
-        throw new Error('Invalid goal data provided');
-      }
-
-      const { data, error } = await supabase
-        .from('goals')
-        .insert({
-          ...goalData,
-          user_id: user.id,
-          current_total: goalData.initial_amount || 0
-        })
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
+      const data = await createGoalInDb(goalData, user);
       toast({
         title: "Success",
         description: "Goal created successfully!",
       });
-
       fetchGoals();
       return data;
     } catch (error) {
@@ -155,21 +84,11 @@ export const useGoals = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('goals')
-        .update(updates)
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
+      await updateGoalInDb(id, updates, user.id);
       toast({
         title: "Success",
         description: "Goal updated successfully!",
       });
-
       fetchGoals();
     } catch (error) {
       console.error('Error updating goal:', error);
@@ -192,21 +111,11 @@ export const useGoals = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('goals')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
+      await deleteGoalFromDb(id, user.id);
       toast({
         title: "Success",
         description: "Goal deleted successfully!",
       });
-
       fetchGoals();
     } catch (error) {
       console.error('Error deleting goal:', error);
