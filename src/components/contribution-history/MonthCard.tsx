@@ -69,7 +69,7 @@ export const MonthCard = ({
         </div>}
 
       {month.contributions && month.contributions.length > 0 && <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Individual Contributions:</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 text-left">Individual Contributions:</p>
           <div className="space-y-1">
             {month.contributions.map(contribution => <div key={contribution.id} className="flex justify-between items-center text-sm">
                 <span className="text-gray-600 dark:text-gray-400">
