@@ -8,6 +8,7 @@ import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import GoalDetail from '@/pages/GoalDetail';
 import EditGoal from '@/pages/EditGoal';
+import Landing from '@/pages/Landing';
 import NotFound from '@/pages/NotFound';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import './App.css';
@@ -30,6 +31,7 @@ function App() {
             <Router>
               <div className="min-h-screen bg-background">
                 <Routes>
+                  <Route path="/landing" element={<Landing />} />
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/goals/:id" element={<GoalDetail />} />
