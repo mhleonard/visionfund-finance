@@ -63,6 +63,12 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
     setExpandedYears(newExpanded);
   };
 
+  // Helper function to check if a contribution date falls within a specific month
+  const isContributionInMonth = (contributionDate: string, year: number, month: number): boolean => {
+    const contribution = new Date(contributionDate);
+    return contribution.getFullYear() === year && contribution.getMonth() === month;
+  };
+
   // Generate monthly data including initial amount and proper timeline
   const generateMonthlyData = (): YearGroup[] => {
     const monthlyData: MonthlyData[] = [];
@@ -93,18 +99,18 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
     currentDate.setDate(1); // Start of month
     
     while (currentDate <= targetDate) {
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth(); // 0-based month index
       const monthKey = currentDate.toISOString().slice(0, 7); // YYYY-MM format
       const monthDisplay = currentDate.toLocaleDateString('en-US', { 
         month: 'long', 
         year: 'numeric' 
       });
       
-      // Find contributions for this month - fix the date matching logic
-      const monthContributions = contributions.filter(c => {
-        const contributionDate = new Date(c.contribution_date);
-        const contributionMonth = contributionDate.toISOString().slice(0, 7);
-        return contributionMonth === monthKey;
-      });
+      // Find contributions for this specific month using proper date comparison
+      const monthContributions = contributions.filter(c => 
+        isContributionInMonth(c.contribution_date, currentYear, currentMonth)
+      );
       
       const actualAmount = monthContributions.reduce((sum, c) => 
         c.is_confirmed ? sum + c.amount : sum, 0
@@ -124,7 +130,7 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
       monthlyData.push({
         month: monthKey,
         monthDisplay,
-        year: currentDate.getFullYear(),
+        year: currentYear,
         pledgedAmount: goal.monthly_pledge,
         actualAmount,
         status,

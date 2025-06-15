@@ -57,6 +57,12 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
     const data: ChartDataPoint[] = [];
     let actualCumulative = goal.initial_amount || 0;
     
+    // Helper function to check if a contribution date falls within a specific month
+    const isContributionInMonth = (contributionDate: string, year: number, month: number): boolean => {
+      const contribution = new Date(contributionDate);
+      return contribution.getFullYear() === year && contribution.getMonth() === month;
+    };
+    
     // Add initial amount as first data point
     if (goal.initial_amount > 0) {
       data.push({
@@ -77,18 +83,17 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
     currentDate.setDate(1); // Start of month
     
     while (currentDate <= targetDate) {
-      const monthKey = currentDate.toISOString().slice(0, 7); // YYYY-MM format
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth(); // 0-based month index
       const monthDisplay = currentDate.toLocaleDateString('en-US', { 
         month: 'short', 
         year: 'numeric' 
       });
       
-      // Find contributions for this exact month - fix date matching
-      const monthContributions = contributions.filter(c => {
-        const contributionDate = new Date(c.contribution_date);
-        const contributionMonth = contributionDate.toISOString().slice(0, 7);
-        return contributionMonth === monthKey;
-      });
+      // Find contributions for this specific month using proper date comparison
+      const monthContributions = contributions.filter(c => 
+        isContributionInMonth(c.contribution_date, currentYear, currentMonth)
+      );
       
       const monthlyContributionAmount = monthContributions.reduce((sum, c) => 
         c.is_confirmed ? sum + c.amount : sum, 0
