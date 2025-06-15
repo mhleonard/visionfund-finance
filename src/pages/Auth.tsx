@@ -78,7 +78,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
@@ -89,7 +89,7 @@ const Auth = () => {
               VisionFund
             </h1>
           </div>
-          <p className="text-gray-600">Your journey to financial freedom starts here</p>
+          <p className="text-gray-600 dark:text-gray-400">Your journey to financial freedom starts here</p>
         </div>
 
         <Tabs defaultValue="signin" className="w-full">
@@ -99,40 +99,40 @@ const Auth = () => {
           </TabsList>
 
           <TabsContent value="signin">
-            <Card>
+            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader>
-                <CardTitle>Welcome Back</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-gray-900 dark:text-white">Welcome Back</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
                   Sign in to your account to continue tracking your goals
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email" className="text-gray-700 dark:text-gray-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <Input
                         id="signin-email"
                         name="email"
                         type="email"
                         placeholder="Enter your email"
                         required
-                        className="pl-9"
+                        className="pl-9 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password" className="text-gray-700 dark:text-gray-300">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <Input
                         id="signin-password"
                         name="password"
                         type="password"
                         placeholder="Enter your password"
                         required
-                        className="pl-9"
+                        className="pl-9 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
                     </div>
                   </div>
@@ -149,10 +149,10 @@ const Auth = () => {
           </TabsContent>
 
           <TabsContent value="signup">
-            <Card>
+            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader>
-                <CardTitle>Create Account</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-gray-900 dark:text-white">Create Account</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
                   Join VisionFund and start achieving your financial goals
                 </CardDescription>
               </CardHeader>
@@ -160,55 +160,56 @@ const Auth = () => {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-firstName">First Name</Label>
+                      <Label htmlFor="signup-firstName" className="text-gray-700 dark:text-gray-300">First Name</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <Input
                           id="signup-firstName"
                           name="firstName"
                           type="text"
                           placeholder="First name"
                           required
-                          className="pl-9"
+                          className="pl-9 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-lastName">Last Name</Label>
+                      <Label htmlFor="signup-lastName" className="text-gray-700 dark:text-gray-300">Last Name</Label>
                       <Input
                         id="signup-lastName"
                         name="lastName"
                         type="text"
                         placeholder="Last name"
                         required
+                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className="text-gray-700 dark:text-gray-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <Input
                         id="signup-email"
                         name="email"
                         type="email"
                         placeholder="Enter your email"
                         required
-                        className="pl-9"
+                        className="pl-9 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password" className="text-gray-700 dark:text-gray-300">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <Input
                         id="signup-password"
                         name="password"
                         type="password"
                         placeholder="Create a password"
                         required
-                        className="pl-9"
+                        className="pl-9 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
                     </div>
                   </div>
