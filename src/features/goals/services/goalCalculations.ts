@@ -1,6 +1,6 @@
 
 import { calculateProgressPercentage, calculateCompletionDate, getContributionStartDate } from '@/utils/financialCalculations';
-import type { Goal, GoalWithCalculations } from '@/types/goal';
+import type { Goal, GoalWithCalculations } from '../types';
 
 export const calculateGoalMetrics = (goal: Goal): GoalWithCalculations => {
   try {

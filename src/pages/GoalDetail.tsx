@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,8 +15,8 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useGoals } from '@/hooks/useGoals';
-import { getStatusColor, getStatusText } from '@/utils/goalStatusUtils';
+import { useGoals } from '@/features/goals/hooks/useGoals';
+import { getStatusColor, getStatusText } from '@/features/goals/utils/goalStatusUtils';
 
 interface Contribution {
   id: string;

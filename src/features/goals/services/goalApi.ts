@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import type { Goal, GoalInsert, GoalUpdate } from '@/types/goal';
+import type { Goal, GoalInsert, GoalUpdate } from '../types';
 
 export const fetchGoalsFromDb = async (userId: string): Promise<Goal[]> => {
   const { data, error } = await supabase
