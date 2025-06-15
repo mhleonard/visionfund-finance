@@ -388,6 +388,28 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
                           </div>
                         )}
 
+                        {/* Show date for initial deposit */}
+                        {month.isInitialAmount && (
+                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Initial Contribution:</p>
+                            <div className="space-y-1">
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {new Date(goal.created_at).toLocaleDateString()}
+                                </span>
+                                <div className="flex items-center space-x-2">
+                                  <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
+                                    Initial Amount
+                                  </span>
+                                  <span className="font-medium">
+                                    {formatCurrency(month.actualAmount)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {month.contributions.length > 0 && (
                           <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                             <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Individual Contributions:</p>
