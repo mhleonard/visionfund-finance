@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { calculateProgressPercentage } from '@/utils/financialUtils';
+import { calculateProgressPercentage, calculateCompletionDate } from '@/utils/financialCalculations';
 import type { Database } from '@/integrations/supabase/types';
 
 type Goal = Database['public']['Tables']['goals']['Row'];
@@ -31,16 +31,12 @@ export const useGoals = () => {
 
       // Calculate projected completion date
       const targetDate = new Date(goal.target_date);
-      const today = new Date();
-      const remaining = Math.max(0, goal.target_amount - (goal.current_total || 0));
-      
-      let monthsNeeded = 0;
-      if (remaining > 0 && goal.monthly_pledge > 0) {
-        monthsNeeded = Math.ceil(remaining / goal.monthly_pledge);
-      }
-      
-      const projectedDate = new Date();
-      projectedDate.setMonth(projectedDate.getMonth() + monthsNeeded);
+      const projectedDate = calculateCompletionDate(
+        goal.target_amount,
+        goal.initial_amount || 0,
+        goal.monthly_pledge,
+        goal.expected_return_rate || 0
+      );
       
       // Determine status
       let onTrackStatus: 'on-track' | 'behind' | 'ahead' = 'on-track';
@@ -58,7 +54,6 @@ export const useGoals = () => {
       };
     } catch (error) {
       console.error('Error calculating goal metrics:', error);
-      // Return goal with default values if calculation fails
       return {
         ...goal,
         progressPercentage: 0,
@@ -113,7 +108,6 @@ export const useGoals = () => {
     }
 
     try {
-      // Validate goal data
       if (!goalData.name || goalData.target_amount <= 0 || goalData.monthly_pledge <= 0) {
         throw new Error('Invalid goal data provided');
       }
@@ -137,7 +131,7 @@ export const useGoals = () => {
         description: "Goal created successfully!",
       });
 
-      fetchGoals(); // Refresh the goals list
+      fetchGoals();
       return data;
     } catch (error) {
       console.error('Error creating goal:', error);
@@ -165,7 +159,7 @@ export const useGoals = () => {
         .from('goals')
         .update(updates)
         .eq('id', id)
-        .eq('user_id', user.id); // Ensure user can only update their own goals
+        .eq('user_id', user.id);
 
       if (error) {
         throw error;
@@ -176,7 +170,7 @@ export const useGoals = () => {
         description: "Goal updated successfully!",
       });
 
-      fetchGoals(); // Refresh the goals list
+      fetchGoals();
     } catch (error) {
       console.error('Error updating goal:', error);
       toast({
@@ -202,7 +196,7 @@ export const useGoals = () => {
         .from('goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id); // Ensure user can only delete their own goals
+        .eq('user_id', user.id);
 
       if (error) {
         throw error;
@@ -213,7 +207,7 @@ export const useGoals = () => {
         description: "Goal deleted successfully!",
       });
 
-      fetchGoals(); // Refresh the goals list
+      fetchGoals();
     } catch (error) {
       console.error('Error deleting goal:', error);
       toast({

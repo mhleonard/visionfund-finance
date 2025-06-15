@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Calendar, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,7 +30,6 @@ export const FulfillPledgeDialog = ({
   const [contributionDate, setContributionDate] = useState(
     new Date().toISOString().split('T')[0]
   );
-  const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -43,7 +41,6 @@ export const FulfillPledgeDialog = ({
     setIsLoading(true);
 
     try {
-      // Add contribution
       const { error: contributionError } = await supabase
         .from('contributions')
         .insert({
@@ -51,7 +48,6 @@ export const FulfillPledgeDialog = ({
           user_id: user.id,
           amount: parseFloat(amount),
           contribution_date: contributionDate,
-          description: description || 'Monthly pledge fulfillment',
           is_confirmed: true
         });
 
@@ -68,7 +64,6 @@ export const FulfillPledgeDialog = ({
       // Reset form
       setAmount(monthlyPledge.toString());
       setContributionDate(new Date().toISOString().split('T')[0]);
-      setDescription('');
     } catch (error) {
       console.error('Error fulfilling pledge:', error);
       toast({
@@ -107,7 +102,7 @@ export const FulfillPledgeDialog = ({
               placeholder="0.00"
               required
             />
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Monthly pledge: ${monthlyPledge.toFixed(2)}
             </p>
           </div>
@@ -124,17 +119,6 @@ export const FulfillPledgeDialog = ({
               />
               <Calendar className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Additional notes about this contribution..."
-              rows={3}
-            />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
