@@ -19,14 +19,39 @@ export const calculateGoalMetrics = (goal: Goal): GoalWithCalculations => {
       goal.created_at
     );
     
-    // Determine status based on contribution start date
+    // Determine status based on actual contribution behavior vs expected
     const contributionStartDate = getContributionStartDate(goal.created_at);
+    const today = new Date();
+    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
     let onTrackStatus: 'on-track' | 'behind' | 'ahead' = 'on-track';
     
-    if (projectedDate > targetDate) {
-      onTrackStatus = 'behind';
-    } else if (projectedDate < targetDate && progressPercentage > 50) {
+    // Check if goal is completed
+    if ((goal.current_total || 0) >= goal.target_amount) {
+      // Goal completed - this would be handled separately if needed
       onTrackStatus = 'ahead';
+    } else if (currentMonth < contributionStartDate) {
+      // Goal created but contributions haven't started yet - should be on track
+      onTrackStatus = 'on-track';
+    } else {
+      // Calculate expected vs actual contributions
+      const monthsSinceStart = Math.max(0, 
+        (today.getFullYear() - contributionStartDate.getFullYear()) * 12 + 
+        (today.getMonth() - contributionStartDate.getMonth()) + 1
+      );
+      
+      const expectedTotal = (goal.initial_amount || 0) + (goal.monthly_pledge * monthsSinceStart);
+      const actualTotal = goal.current_total || 0;
+      
+      const tolerance = goal.monthly_pledge * 0.1; // 10% tolerance
+      
+      if (actualTotal >= expectedTotal + tolerance) {
+        onTrackStatus = 'ahead';
+      } else if (actualTotal < expectedTotal - tolerance) {
+        onTrackStatus = 'behind';
+      } else {
+        onTrackStatus = 'on-track';
+      }
     }
 
     return {
