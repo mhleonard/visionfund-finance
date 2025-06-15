@@ -4,9 +4,9 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Calendar, TrendingUp, Edit, Trash2, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { GoalWithCalculations } from '../../hooks/useGoals';
+import { GoalWithCalculations } from '../hooks/useGoals';
 import { useNavigate } from 'react-router-dom';
-import { getStatusColor, getStatusText } from '../../utils/goalStatusUtils';
+import { getStatusColor, getStatusText } from '../utils/goalStatusUtils';
 
 interface GoalCardProps {
   goal: GoalWithCalculations;
