@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import {
   LineChart,
@@ -252,8 +251,7 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
             strokeDasharray="5 5" 
             label={{ 
               value: `Target: ${formatCurrency(goal.target_amount)}`, 
-              position: "topLeft",
-              offset: 10
+              position: "top"
             }}
           />
           
