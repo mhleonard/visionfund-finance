@@ -169,7 +169,7 @@ const GoalDetail = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Pledge</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white text-left">
                       {formatCurrency(goalData.monthly_pledge)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 text-left">
