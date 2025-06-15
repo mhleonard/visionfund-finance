@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,7 +37,7 @@ interface Contribution {
   created_at: string;
 }
 
-import { GoalProgressChart } from '@/components/GoalProgressChart';
+import { EnhancedGoalProgressChart } from '@/components/EnhancedGoalProgressChart';
 import { ImprovedContributionHistory } from '@/components/ImprovedContributionHistory';
 import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
 import { formatCurrency, getContributionStartDate } from '@/utils/financialCalculations';
@@ -279,12 +280,12 @@ const GoalDetail = () => {
           </Card>
         </div>
 
-        {/* Interactive Progress Chart */}
+        {/* Enhanced Financial Progress Chart */}
         <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
           <CardHeader>
-            <CardTitle>Progress Chart</CardTitle>
+            <CardTitle>Financial Progress Chart</CardTitle>
             <CardDescription>
-              Track your journey to your financial goal
+              Track your financial journey with projected vs actual progress
               {!contributionStarted && (
                 <span className="block text-amber-600 dark:text-amber-400 mt-1">
                   📅 Monthly contributions will begin on {contributionStartDate.toLocaleDateString()}
@@ -293,7 +294,7 @@ const GoalDetail = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <GoalProgressChart 
+            <EnhancedGoalProgressChart 
               goal={goal} 
               contributions={contributions}
             />
