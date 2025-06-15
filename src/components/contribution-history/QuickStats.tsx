@@ -63,7 +63,7 @@ export const QuickStats = ({
           <Calendar className="h-4 w-4 text-blue-600" />
           <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">Monthly Contributions</p>
         </div>
-        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 text-left">
           {formatCurrency(totalConfirmed)}
         </p>
         <p className="text-xs text-blue-600 dark:text-blue-400">
