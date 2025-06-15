@@ -329,6 +329,8 @@ const GoalDetail = () => {
         goalId={goal.id}
         goalName={goal.name}
         monthlyPledge={goal.monthly_pledge}
+        goalCreatedAt={goal.created_at}
+        contributions={contributions}
         onSuccess={fetchGoalData}
       />
     </div>
