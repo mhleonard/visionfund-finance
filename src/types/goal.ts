@@ -7,6 +7,6 @@ export type GoalUpdate = Database['public']['Tables']['goals']['Update'];
 
 export interface GoalWithCalculations extends Goal {
   progressPercentage: number;
-  onTrackStatus: 'on-track' | 'behind' | 'ahead';
+  onTrackStatus: 'on-track' | 'behind' | 'ahead' | 'completed';
   projectedCompletionDate: string;
 }

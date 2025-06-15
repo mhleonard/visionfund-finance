@@ -19,17 +19,16 @@ export const calculateGoalMetrics = (goal: Goal): GoalWithCalculations => {
       goal.created_at
     );
     
-    // Determine status based on actual contribution behavior vs expected
+    // Determine status based on goal completion and contribution behavior
     const contributionStartDate = getContributionStartDate(goal.created_at);
     const today = new Date();
     const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     
-    let onTrackStatus: 'on-track' | 'behind' | 'ahead' = 'on-track';
+    let onTrackStatus: 'on-track' | 'behind' | 'ahead' | 'completed' = 'on-track';
     
-    // Check if goal is completed
+    // Check if goal is completed first
     if ((goal.current_total || 0) >= goal.target_amount) {
-      // Goal completed - this would be handled separately if needed
-      onTrackStatus = 'ahead';
+      onTrackStatus = 'completed';
     } else if (currentMonth < contributionStartDate) {
       // Goal created but contributions haven't started yet - should be on track
       onTrackStatus = 'on-track';
