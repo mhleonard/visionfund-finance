@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Calendar, TrendingUp, Edit, Trash2, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GoalWithCalculations } from '@/hooks/useGoals';
+import { useNavigate } from 'react-router-dom';
 
 interface GoalCardProps {
   goal: GoalWithCalculations;
   onEdit?: (goal: GoalWithCalculations) => void;
   onDelete?: (goalId: string) => void;
-  onClick?: (goal: GoalWithCalculations) => void;
   onFulfillPledge?: (goal: GoalWithCalculations) => void;
 }
 
@@ -55,11 +55,11 @@ const getStatusText = (status: GoalWithCalculations['onTrackStatus']) => {
   }
 };
 
-export const GoalCard = ({ goal, onEdit, onDelete, onClick, onFulfillPledge }: GoalCardProps) => {
+export const GoalCard = ({ goal, onEdit, onDelete, onFulfillPledge }: GoalCardProps) => {
+  const navigate = useNavigate();
+
   const handleCardClick = () => {
-    if (onClick) {
-      onClick(goal);
-    }
+    navigate(`/goals/${goal.id}`);
   };
 
   const handleEditClick = (e: React.MouseEvent) => {

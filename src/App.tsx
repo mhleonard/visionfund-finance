@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import GoalDetail from "./pages/GoalDetail";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/goals/:id" element={<GoalDetail />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
