@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,17 +16,21 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useEffect } from 'react';
 
 const Landing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleGetStarted = () => {
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
     if (user) {
-      navigate('/');
-    } else {
-      navigate('/auth');
+      navigate('/dashboard');
     }
+  }, [user, navigate]);
+
+  const handleGetStarted = () => {
+    navigate('/auth');
   };
 
   const features = [
@@ -103,20 +106,14 @@ const Landing = () => {
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              {user ? (
-                <Button onClick={() => navigate('/')} className="bg-blue-600 hover:bg-blue-700 text-white">
-                  Go to Dashboard
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" onClick={() => navigate('/auth')} className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                  Sign In
                 </Button>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" onClick={() => navigate('/auth')} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                    Sign In
-                  </Button>
-                  <Button onClick={() => navigate('/auth')} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Get Started
-                  </Button>
-                </div>
-              )}
+                <Button onClick={() => navigate('/auth')} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Get Started
+                </Button>
+              </div>
             </div>
           </div>
         </div>

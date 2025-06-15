@@ -31,8 +31,8 @@ function App() {
             <Router>
               <div className="min-h-screen bg-background">
                 <Routes>
-                  <Route path="/landing" element={<Landing />} />
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/dashboard" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/goals/:id" element={<GoalDetail />} />
                   <Route path="/goals/:id/edit" element={<EditGoal />} />

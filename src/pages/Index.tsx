@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -20,9 +19,9 @@ const Index = () => {
   const [editingGoal, setEditingGoal] = useState<GoalWithCalculations | null>(null);
   const [fulfillPledgeGoal, setFulfillPledgeGoal] = useState<GoalWithCalculations | null>(null);
 
-  // Redirect to auth if not authenticated
+  // Redirect to landing page if not authenticated
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (loading) {
