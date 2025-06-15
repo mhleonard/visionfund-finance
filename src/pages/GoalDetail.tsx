@@ -229,7 +229,7 @@ const GoalDetail = () => {
         <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-gray-200 dark:border-gray-700">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-white">Financial Progress Chart</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <CardDescription className="text-gray-600 dark:text-gray-400 text-left">
               Track your financial journey with projected vs actual progress
             </CardDescription>
           </CardHeader>
