@@ -242,7 +242,7 @@ const GoalDetail = () => {
         <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-gray-200 dark:border-gray-700">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-white">Contribution Timeline</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <CardDescription className="text-gray-600 dark:text-gray-400 text-left">
               Complete history of your savings journey, organized by year
               {goalData.initial_amount > 0 && <span className="block text-blue-600 dark:text-blue-400 mt-1">
                   🏦 Includes your initial deposit of {formatCurrency(goalData.initial_amount)}
