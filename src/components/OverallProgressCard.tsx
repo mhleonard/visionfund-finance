@@ -1,24 +1,20 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-
 interface OverallProgressCardProps {
   totalCurrentValue: number;
   totalGoalsValue: number;
   overallProgress: number;
   formatCurrency: (amount: number) => string;
 }
-
-export const OverallProgressCard = ({ 
-  totalCurrentValue, 
-  totalGoalsValue, 
-  overallProgress, 
-  formatCurrency 
+export const OverallProgressCard = ({
+  totalCurrentValue,
+  totalGoalsValue,
+  overallProgress,
+  formatCurrency
 }: OverallProgressCardProps) => {
-  return (
-    <Card className="mb-8 bg-gradient-to-r from-blue-600 to-green-600 text-white border-0">
+  return <Card className="mb-8 bg-gradient-to-r from-blue-600 to-green-600 text-white border-0">
       <CardHeader>
-        <CardTitle className="text-white">Overall Progress</CardTitle>
+        <CardTitle className="text-white text-left">Overall Progress</CardTitle>
         <CardDescription className="text-blue-100">
           Your journey to financial freedom
         </CardDescription>
@@ -38,6 +34,5 @@ export const OverallProgressCard = ({
           <Progress value={overallProgress} className="bg-blue-500/30 [&>div]:bg-white" />
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
