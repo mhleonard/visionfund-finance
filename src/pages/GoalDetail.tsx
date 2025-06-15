@@ -201,16 +201,16 @@ const GoalDetail = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Target Amount</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Amount Saved</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatCurrency(goal.target_amount)}
+                    {formatCurrency(goal.current_total)}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Current: {formatCurrency(goal.current_total)}
+                    Target: {formatCurrency(goal.target_amount)}
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <Target className="h-6 w-6 text-red-600" />
+                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </CardContent>
@@ -267,7 +267,7 @@ const GoalDetail = () => {
                   </p>
                 </div>
                 <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-orange-600" />
+                  <Target className="h-6 w-6 text-orange-600" />
                 </div>
               </div>
             </CardContent>

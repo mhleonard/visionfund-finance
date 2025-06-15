@@ -8,8 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
-  Dot
+  ReferenceLine
 } from 'recharts';
 import { formatCurrency, getContributionStartDate } from '@/utils/financialCalculations';
 
@@ -40,10 +39,11 @@ interface EnhancedGoalProgressChartProps {
 
 interface ChartDataPoint {
   month: string;
+  monthYear: string;
   date: Date;
-  actual: number | null;
+  actualSaved: number | null;
   projected: number;
-  target: number;
+  monthlyContribution: number;
   hasContribution: boolean;
   isCurrentMonth: boolean;
 }
@@ -56,7 +56,7 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
     const today = new Date();
     
     const data: ChartDataPoint[] = [];
-    let actualCumulative = goal.initial_amount || 0;
+    let runningTotal = goal.initial_amount || 0;
     
     // Start from goal creation date
     const currentDate = new Date(goalCreatedDate);
@@ -65,6 +65,11 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
     while (currentDate <= targetDate) {
       const monthDisplay = currentDate.toLocaleDateString('en-US', { 
         month: 'short', 
+        year: 'numeric' 
+      });
+      
+      const monthYear = currentDate.toLocaleDateString('en-US', { 
+        month: 'long', 
         year: 'numeric' 
       });
       
@@ -81,12 +86,7 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
       
       const monthlyContributionAmount = monthContributions.reduce((sum, c) => sum + c.amount, 0);
       
-      // Update actual amount for past/current months only
-      if (currentDate <= today && monthContributions.length > 0) {
-        actualCumulative += monthlyContributionAmount;
-      }
-      
-      // Calculate projected amount with compound interest
+      // Calculate projected amount for this month
       const monthsFromGoalCreation = Math.max(0,
         (currentDate.getFullYear() - goalCreatedDate.getFullYear()) * 12 + 
         (currentDate.getMonth() - goalCreatedDate.getMonth())
@@ -101,10 +101,10 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
       let projectedAmount = goal.initial_amount || 0;
       
       if (monthlyRate > 0) {
-        // Future value of initial amount
+        // Future value of initial amount with compound interest
         const futureValueInitial = (goal.initial_amount || 0) * Math.pow(1 + monthlyRate, monthsFromGoalCreation);
         
-        // Future value of contributions (only from contribution start date)
+        // Future value of regular contributions
         const contributionPeriods = Math.max(0, monthsFromContributionStart);
         const futureValueContributions = contributionPeriods > 0 
           ? goal.monthly_pledge * (Math.pow(1 + monthlyRate, contributionPeriods) - 1) / monthlyRate
@@ -117,12 +117,20 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
         projectedAmount = (goal.initial_amount || 0) + (goal.monthly_pledge * contributionPeriods);
       }
       
+      // Update actual saved for past/current months
+      if (currentDate <= today) {
+        if (monthContributions.length > 0) {
+          runningTotal += monthlyContributionAmount;
+        }
+      }
+      
       data.push({
         month: monthDisplay,
+        monthYear: monthYear,
         date: new Date(currentDate),
-        actual: currentDate <= today ? actualCumulative : null,
-        projected: Math.min(projectedAmount, goal.target_amount * 1.2), // Cap projection
-        target: goal.target_amount,
+        actualSaved: currentDate <= today ? runningTotal : null,
+        projected: Math.min(projectedAmount, goal.target_amount * 1.5), // Cap projection
+        monthlyContribution: monthlyContributionAmount,
         hasContribution: monthContributions.length > 0,
         isCurrentMonth
       });
@@ -138,86 +146,49 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
       const data = payload[0].payload;
       
       return (
-        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl">
-          <p className="font-semibold text-gray-900 dark:text-white mb-2">{label}</p>
+        <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl min-w-64">
+          <p className="font-bold text-gray-900 dark:text-white mb-3 text-center">{data.monthYear}</p>
           
-          <div className="space-y-1">
-            {payload.map((entry: any, index: number) => {
-              if (entry.dataKey === 'target') return null;
-              
-              const color = entry.dataKey === 'actual' ? '#10b981' : '#3b82f6';
-              const label = entry.dataKey === 'actual' ? 'Actual' : 'Projected';
-              
-              return (
-                <div key={index} className="flex items-center justify-between space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: color }}
-                    />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {label}:
-                    </span>
-                  </div>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {entry.value ? formatCurrency(entry.value) : 'N/A'}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">Projected:</span>
+              <span className="font-bold text-gray-900 dark:text-white">
+                {formatCurrency(data.projected)}
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">Contribution:</span>
+              <span className="font-bold text-gray-900 dark:text-white">
+                {data.monthlyContribution > 0 ? formatCurrency(data.monthlyContribution) : '$0.00'}
+              </span>
+            </div>
+            
+            {data.actualSaved !== null && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-green-600 dark:text-green-400 font-medium">Actual Saved:</span>
+                <span className="font-bold text-gray-900 dark:text-white">
+                  {formatCurrency(data.actualSaved)}
+                </span>
+              </div>
+            )}
+            
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
+                <span className={`text-sm font-medium ${
+                  data.hasContribution 
+                    ? 'text-green-600 dark:text-green-400' 
+                    : 'text-gray-500 dark:text-gray-500'
+                }`}>
+                  {data.hasContribution ? 'Contribution Made ✅' : 'No Contribution'}
+                </span>
+              </div>
+            </div>
           </div>
-          
-          {data.hasContribution && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-              <span className="text-xs text-green-600 dark:text-green-400">
-                ✅ Contribution made this month
-              </span>
-            </div>
-          )}
-          
-          {data.isCurrentMonth && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-              <span className="text-xs text-orange-600 dark:text-orange-400">
-                📍 Current month
-              </span>
-            </div>
-          )}
         </div>
       );
     }
-    return null;
-  };
-
-  const CustomDot = (props: any) => {
-    const { cx, cy, payload } = props;
-    
-    if (payload.isCurrentMonth) {
-      return (
-        <Dot
-          cx={cx}
-          cy={cy}
-          r={5}
-          fill="#f97316"
-          stroke="#fff"
-          strokeWidth={2}
-          className="animate-pulse"
-        />
-      );
-    }
-    
-    if (payload.hasContribution) {
-      return (
-        <Dot
-          cx={cx}
-          cy={cy}
-          r={3}
-          fill="#10b981"
-          stroke="#fff"
-          strokeWidth={1}
-        />
-      );
-    }
-    
     return null;
   };
 
@@ -259,7 +230,7 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
           
           <Tooltip content={<CustomTooltip />} />
           
-          {/* Target line */}
+          {/* Target line - Red dotted line */}
           <ReferenceLine 
             y={goal.target_amount} 
             stroke="#ef4444" 
@@ -302,10 +273,38 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
           {/* Actual progress line */}
           <Line
             type="monotone"
-            dataKey="actual"
+            dataKey="actualSaved"
             stroke="#10b981"
             strokeWidth={3}
-            dot={<CustomDot />}
+            dot={(props: any) => {
+              const { cx, cy, payload } = props;
+              if (payload.isCurrentMonth) {
+                return (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={5}
+                    fill="#f97316"
+                    stroke="#fff"
+                    strokeWidth={2}
+                    className="animate-pulse"
+                  />
+                );
+              }
+              if (payload.hasContribution) {
+                return (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={3}
+                    fill="#10b981"
+                    stroke="#fff"
+                    strokeWidth={1}
+                  />
+                );
+              }
+              return null;
+            }}
             activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 3, fill: '#fff' }}
             connectNulls={false}
           />
@@ -317,7 +316,7 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
         <div className="flex flex-col space-y-2 text-xs">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-0.5 bg-green-500"></div>
-            <span className="text-gray-700 dark:text-gray-300 font-medium">Actual Progress</span>
+            <span className="text-gray-700 dark:text-gray-300 font-medium">Actual Saved</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-0.5 bg-blue-500 opacity-70" style={{ borderTop: '2px dashed #3b82f6' }}></div>
