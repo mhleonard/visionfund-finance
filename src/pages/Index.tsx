@@ -8,6 +8,7 @@ import { PlusCircle, Target, TrendingUp, LogOut } from 'lucide-react';
 import { GoalCard } from '@/components/GoalCard';
 import { CreateGoalForm } from '@/components/CreateGoalForm';
 import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useGoals, GoalWithCalculations } from '@/hooks/useGoals';
 
@@ -25,10 +26,10 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">Loading your goals...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading your goals...</p>
         </div>
       </div>
     );
@@ -70,7 +71,7 @@ const Index = () => {
 
   if (showCreateForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
         <CreateGoalForm
           onSubmit={handleCreateGoal}
           onCancel={() => setShowCreateForm(false)}
@@ -81,7 +82,7 @@ const Index = () => {
 
   if (editingGoal) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
         <CreateGoalForm
           onSubmit={handleEditGoal}
           onCancel={() => setEditingGoal(null)}
@@ -107,9 +108,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -121,9 +122,10 @@ const Index = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 Welcome, {user.user_metadata?.first_name || user.email}
               </span>
+              <ThemeToggle />
               <Button 
                 variant="outline" 
                 size="sm"
@@ -140,8 +142,8 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back!</h2>
-          <p className="text-gray-600">Track your financial goals and watch your dreams become reality.</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back!</h2>
+          <p className="text-gray-600 dark:text-gray-400">Track your financial goals and watch your dreams become reality.</p>
         </div>
 
         {/* Overall Progress Card */}
@@ -203,9 +205,9 @@ const Index = () => {
         {goals.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
-              <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No goals yet</h3>
-              <p className="text-gray-600 mb-6">
+              <Target className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No goals yet</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Start your financial journey by creating your first goal.
               </p>
               <Button 
