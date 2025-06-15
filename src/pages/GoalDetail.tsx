@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -172,11 +171,6 @@ const GoalDetail = () => {
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     {Math.round(progressPercentage)}% complete
                   </span>
-                  {!contributionStarted && (
-                    <Badge variant="outline" className="text-xs">
-                      Contributions start {contributionStartDate.toLocaleDateString()}
-                    </Badge>
-                  )}
                 </div>
               </div>
             </div>
@@ -207,16 +201,16 @@ const GoalDetail = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Current Saved</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Target Amount</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatCurrency(goal.current_total)}
+                    {formatCurrency(goal.target_amount)}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Initial: {formatCurrency(goal.initial_amount || 0)}
+                    Current: {formatCurrency(goal.current_total)}
                   </p>
                 </div>
-                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-green-600" />
+                <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Target className="h-6 w-6 text-red-600" />
                 </div>
               </div>
             </CardContent>
@@ -273,7 +267,7 @@ const GoalDetail = () => {
                   </p>
                 </div>
                 <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
-                  <Target className="h-6 w-6 text-orange-600" />
+                  <DollarSign className="h-6 w-6 text-orange-600" />
                 </div>
               </div>
             </CardContent>
@@ -286,11 +280,6 @@ const GoalDetail = () => {
             <CardTitle>Financial Progress Chart</CardTitle>
             <CardDescription>
               Track your financial journey with projected vs actual progress
-              {!contributionStarted && (
-                <span className="block text-amber-600 dark:text-amber-400 mt-1">
-                  📅 Monthly contributions will begin on {contributionStartDate.toLocaleDateString()}
-                </span>
-              )}
             </CardDescription>
           </CardHeader>
           <CardContent>

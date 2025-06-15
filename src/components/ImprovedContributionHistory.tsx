@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -227,9 +228,7 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
   // Calculate overall stats
   const totalConfirmed = contributions.filter(c => c.is_confirmed).reduce((sum, c) => sum + c.amount, 0);
   const totalWithInitial = totalConfirmed + (goal.initial_amount || 0);
-  const totalExpected = yearGroups.reduce((sum, year) => 
-    sum + year.months.filter(m => m.status !== 'future').reduce((monthSum, m) => monthSum + m.pledgedAmount, 0), 0
-  );
+  const overallProgressPercentage = Math.min(100, (totalWithInitial / goal.target_amount) * 100);
 
   return (
     <div className="space-y-6">
@@ -263,27 +262,35 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
         
         <div className={cn(
           "p-4 rounded-lg border",
-          totalWithInitial >= totalExpected
+          overallProgressPercentage >= 75
             ? "bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800"
+            : overallProgressPercentage >= 50
+            ? "bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800"
             : "bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800"
         )}>
           <p className={cn(
             "text-sm mb-2",
-            totalWithInitial >= totalExpected ? "text-green-700 dark:text-green-300" : "text-yellow-700 dark:text-yellow-300"
+            overallProgressPercentage >= 75 ? "text-green-700 dark:text-green-300" : 
+            overallProgressPercentage >= 50 ? "text-blue-700 dark:text-blue-300" :
+            "text-yellow-700 dark:text-yellow-300"
           )}>
-            Progress vs Expected
+            Overall Progress
           </p>
           <p className={cn(
             "text-2xl font-bold",
-            totalWithInitial >= totalExpected ? "text-green-900 dark:text-green-100" : "text-yellow-900 dark:text-yellow-100"
+            overallProgressPercentage >= 75 ? "text-green-900 dark:text-green-100" :
+            overallProgressPercentage >= 50 ? "text-blue-900 dark:text-blue-100" :
+            "text-yellow-900 dark:text-yellow-100"
           )}>
-            {Math.round((totalWithInitial / Math.max(totalExpected, 1)) * 100)}%
+            {Math.round(overallProgressPercentage)}%
           </p>
           <p className={cn(
             "text-xs",
-            totalWithInitial >= totalExpected ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"
+            overallProgressPercentage >= 75 ? "text-green-600 dark:text-green-400" :
+            overallProgressPercentage >= 50 ? "text-blue-600 dark:text-blue-400" :
+            "text-yellow-600 dark:text-yellow-400"
           )}>
-            {formatCurrency(totalWithInitial)} of {formatCurrency(totalExpected)}
+            {formatCurrency(totalWithInitial)} of {formatCurrency(goal.target_amount)}
           </p>
         </div>
       </div>
@@ -317,7 +324,7 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
                         {formatCurrency(yearGroup.totalActual)}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        of {formatCurrency(yearGroup.totalPledged)} planned
+                        {Math.round((yearGroup.totalActual / goal.target_amount) * 100)}% of target
                       </p>
                     </div>
                   </div>
@@ -330,6 +337,8 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
                     const completionPercentage = month.pledgedAmount > 0 
                       ? Math.min(100, (month.actualAmount / month.pledgedAmount) * 100)
                       : 0;
+                    
+                    const targetProgressPercentage = (month.actualAmount / goal.target_amount) * 100;
 
                     return (
                       <div 
@@ -358,11 +367,9 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
                             <p className="text-lg font-bold text-gray-900 dark:text-white">
                               {formatCurrency(month.actualAmount)}
                             </p>
-                            {!month.isInitialAmount && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                of {formatCurrency(month.pledgedAmount)}
-                              </p>
-                            )}
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {Math.round(targetProgressPercentage * 100) / 100}% of target
+                            </p>
                           </div>
                         </div>
 
