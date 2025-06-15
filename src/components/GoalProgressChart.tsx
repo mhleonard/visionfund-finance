@@ -84,46 +84,57 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
         year: 'numeric' 
       });
       
-      // Find contributions for this month
-      const monthContributions = contributions.filter(c => 
-        c.contribution_date.slice(0, 7) === monthKey
-      );
+      // Find contributions for this exact month - fix date matching
+      const monthContributions = contributions.filter(c => {
+        const contributionDate = new Date(c.contribution_date);
+        const contributionMonth = contributionDate.toISOString().slice(0, 7);
+        return contributionMonth === monthKey;
+      });
       
       const monthlyContributionAmount = monthContributions.reduce((sum, c) => 
         c.is_confirmed ? sum + c.amount : sum, 0
       );
       
-      // Update actual amount with confirmed contributions
-      if (monthContributions.length > 0 && currentDate <= today) {
+      // Update actual amount with confirmed contributions for past/current months
+      if (currentDate <= today && monthContributions.length > 0) {
         actualCumulative += monthlyContributionAmount;
       }
       
-      // Calculate projected amount (theoretical progress from contribution start)
-      const monthsFromContributionStart = Math.max(0, 
+      // Calculate projected amount with proper compound interest
+      const monthsFromStart = Math.max(0, 
         (currentDate.getFullYear() - contributionStartDate.getFullYear()) * 12 + 
-        (currentDate.getMonth() - contributionStartDate.getMonth())
+        (currentDate.getMonth() - contributionStartDate.getMonth()) + 1
       );
       
       const monthlyRate = (goal.expected_return_rate || 0) / 100 / 12;
       let projectedAmount = goal.initial_amount || 0;
       
-      // Apply compound interest and monthly contributions
+      // Apply compound interest growth from goal creation to this month
+      const monthsFromGoalCreation = Math.max(0,
+        (currentDate.getFullYear() - goalCreatedDate.getFullYear()) * 12 + 
+        (currentDate.getMonth() - goalCreatedDate.getMonth()) + 1
+      );
+      
       if (monthlyRate > 0) {
-        // Future value of initial amount
-        const futureValueInitial = (goal.initial_amount || 0) * Math.pow(1 + monthlyRate, monthsFromContributionStart + 1);
-        // Future value of monthly contributions (annuity)
-        const futureValueContributions = monthsFromContributionStart > 0 
-          ? goal.monthly_pledge * (Math.pow(1 + monthlyRate, monthsFromContributionStart) - 1) / monthlyRate
+        // Future value of initial amount with compound interest
+        const futureValueInitial = (goal.initial_amount || 0) * Math.pow(1 + monthlyRate, monthsFromGoalCreation);
+        
+        // Future value of monthly contributions (only from contribution start date)
+        const contributionMonths = Math.max(0, monthsFromStart);
+        const futureValueContributions = contributionMonths > 0 
+          ? goal.monthly_pledge * (Math.pow(1 + monthlyRate, contributionMonths) - 1) / monthlyRate
           : 0;
+        
         projectedAmount = futureValueInitial + futureValueContributions;
       } else {
-        projectedAmount = (goal.initial_amount || 0) + (goal.monthly_pledge * monthsFromContributionStart);
+        // Simple addition without compound interest
+        projectedAmount = (goal.initial_amount || 0) + (goal.monthly_pledge * Math.max(0, monthsFromStart));
       }
       
       data.push({
         month: monthDisplay,
         actual: currentDate <= today ? actualCumulative : null,
-        projected: Math.min(projectedAmount, goal.target_amount * 1.1), // Cap at 110% of target
+        projected: Math.min(projectedAmount, goal.target_amount * 1.2), // Cap at 120% of target
         contribution: monthlyContributionAmount > 0 ? monthlyContributionAmount : undefined,
         isConfirmed: monthContributions.some(c => c.is_confirmed)
       });
@@ -203,7 +214,7 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
   return (
     <div className="w-full h-96">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
           <defs>
             <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -239,10 +250,14 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
             y={goal.target_amount} 
             stroke="#ef4444" 
             strokeDasharray="5 5" 
-            label={{ value: `Target: ${formatCurrency(goal.target_amount)}`, position: "top" }}
+            label={{ 
+              value: `Target: ${formatCurrency(goal.target_amount)}`, 
+              position: "topLeft",
+              offset: 10
+            }}
           />
           
-          {/* Projected progress area */}
+          {/* Projected progress area - behind actual */}
           <Area
             type="monotone"
             dataKey="projected"
@@ -252,7 +267,7 @@ export const GoalProgressChart = ({ goal, contributions }: GoalProgressChartProp
             strokeDasharray="5 5"
           />
           
-          {/* Actual progress area */}
+          {/* Actual progress area - in front */}
           <Area
             type="monotone"
             dataKey="actual"

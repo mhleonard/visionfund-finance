@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -94,16 +93,18 @@ export const ImprovedContributionHistory = ({ goal, contributions }: Contributio
     currentDate.setDate(1); // Start of month
     
     while (currentDate <= targetDate) {
-      const monthKey = currentDate.toISOString().slice(0, 7);
+      const monthKey = currentDate.toISOString().slice(0, 7); // YYYY-MM format
       const monthDisplay = currentDate.toLocaleDateString('en-US', { 
         month: 'long', 
         year: 'numeric' 
       });
       
-      // Find contributions for this month
-      const monthContributions = contributions.filter(c => 
-        c.contribution_date.slice(0, 7) === monthKey
-      );
+      // Find contributions for this month - fix the date matching logic
+      const monthContributions = contributions.filter(c => {
+        const contributionDate = new Date(c.contribution_date);
+        const contributionMonth = contributionDate.toISOString().slice(0, 7);
+        return contributionMonth === monthKey;
+      });
       
       const actualAmount = monthContributions.reduce((sum, c) => 
         c.is_confirmed ? sum + c.amount : sum, 0
