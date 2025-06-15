@@ -52,7 +52,7 @@ export const QuickStats = ({
         <p className="text-2xl font-bold text-green-900 dark:text-green-100 text-left">
           {formatCurrency(totalWithInitial)}
         </p>
-        <p className="text-xs text-green-600 dark:text-green-400">
+        <p className="text-xs text-green-600 dark:text-green-400 text-left">
           Including {formatCurrency(goal.initial_amount || 0)} initial
         </p>
       </div>
