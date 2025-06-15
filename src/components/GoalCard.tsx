@@ -6,6 +6,7 @@ import { Calendar, TrendingUp, Edit, Trash2, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GoalWithCalculations } from '@/hooks/useGoals';
 import { useNavigate } from 'react-router-dom';
+import { getStatusColor, getStatusText } from '@/utils/goalStatusUtils';
 
 interface GoalCardProps {
   goal: GoalWithCalculations;
@@ -27,32 +28,6 @@ const formatDate = (dateString: string) => {
     month: 'short',
     day: 'numeric'
   });
-};
-
-const getStatusColor = (status: GoalWithCalculations['onTrackStatus']) => {
-  switch (status) {
-    case 'on-track':
-      return 'text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950 dark:border-green-800';
-    case 'ahead':
-      return 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950 dark:border-blue-800';
-    case 'behind':
-      return 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950 dark:border-red-800';
-    default:
-      return 'text-muted-foreground bg-muted border-border';
-  }
-};
-
-const getStatusText = (status: GoalWithCalculations['onTrackStatus']) => {
-  switch (status) {
-    case 'on-track':
-      return 'On Track';
-    case 'ahead':
-      return 'Ahead of Schedule';
-    case 'behind':
-      return 'Behind Schedule';
-    default:
-      return 'Unknown';
-  }
 };
 
 export const GoalCard = ({ goal, onEdit, onDelete, onFulfillPledge }: GoalCardProps) => {

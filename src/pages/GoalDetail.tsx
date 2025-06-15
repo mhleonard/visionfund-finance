@@ -16,8 +16,8 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { calculateGoalMetrics } from '@/services/goalCalculations';
-import type { Goal, GoalWithCalculations } from '@/types/goal';
+import { useGoals } from '@/hooks/useGoals';
+import { getStatusColor, getStatusText } from '@/utils/goalStatusUtils';
 
 interface Contribution {
   id: string;
@@ -38,41 +38,21 @@ const GoalDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { goals, loading } = useGoals();
   
-  const [goalData, setGoalData] = useState<Goal | null>(null);
-  const [goalWithCalculations, setGoalWithCalculations] = useState<GoalWithCalculations | null>(null);
   const [contributions, setContributions] = useState<Contribution[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showFulfillPledge, setShowFulfillPledge] = useState(false);
+
+  // Find the goal from the goals list
+  const goalData = goals.find(g => g.id === id);
 
   useEffect(() => {
     if (!user || !id) return;
-    fetchGoalData();
+    fetchContributions();
   }, [user, id]);
 
-  const fetchGoalData = async () => {
+  const fetchContributions = async () => {
     try {
-      setLoading(true);
-      
-      // Fetch goal data
-      const { data: rawGoalData, error: goalError } = await supabase
-        .from('goals')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user?.id)
-        .single();
-
-      if (goalError) throw goalError;
-      if (!rawGoalData) {
-        toast({
-          title: "Goal not found",
-          description: "The goal you're looking for doesn't exist.",
-          variant: "destructive",
-        });
-        navigate('/');
-        return;
-      }
-
       // Fetch contributions
       const { data: contributionsData, error: contributionsError } = await supabase
         .from('contributions')
@@ -82,48 +62,14 @@ const GoalDetail = () => {
 
       if (contributionsError) throw contributionsError;
 
-      // Calculate goal metrics using the same service as homepage
-      const goalWithMetrics = calculateGoalMetrics(rawGoalData);
-
-      setGoalData(rawGoalData);
-      setGoalWithCalculations(goalWithMetrics);
       setContributions(contributionsData || []);
     } catch (error) {
-      console.error('Error fetching goal data:', error);
+      console.error('Error fetching contributions:', error);
       toast({
         title: "Error",
-        description: "Failed to load goal data.",
+        description: "Failed to load contribution data.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Use the shared status functions from GoalCard
-  const getStatusColor = (status: GoalWithCalculations['onTrackStatus']) => {
-    switch (status) {
-      case 'on-track':
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800';
-      case 'ahead':
-        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
-      case 'behind':
-        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600';
-    }
-  };
-
-  const getStatusText = (status: GoalWithCalculations['onTrackStatus']) => {
-    switch (status) {
-      case 'on-track':
-        return 'On Track';
-      case 'ahead':
-        return 'Ahead of Schedule';
-      case 'behind':
-        return 'Behind Schedule';
-      default:
-        return 'Unknown';
     }
   };
 
@@ -146,7 +92,22 @@ const GoalDetail = () => {
     );
   }
 
-  if (!goalData || !goalWithCalculations) return null;
+  if (!goalData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-center h-64">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Goal not found</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">The goal you're looking for doesn't exist.</p>
+            <Button onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const targetDate = new Date(goalData.target_date);
   const today = new Date();
@@ -178,11 +139,11 @@ const GoalDetail = () => {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{goalData.name}</h1>
                 <div className="flex items-center space-x-4 mt-1">
-                  <Badge className={cn("border", getStatusColor(goalWithCalculations.onTrackStatus))}>
-                    {getStatusText(goalWithCalculations.onTrackStatus)}
+                  <Badge className={cn("border", getStatusColor(goalData.onTrackStatus))}>
+                    {getStatusText(goalData.onTrackStatus)}
                   </Badge>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {Math.round(goalWithCalculations.progressPercentage)}% complete
+                    {Math.round(goalData.progressPercentage)}% complete
                   </span>
                 </div>
               </div>
@@ -338,7 +299,7 @@ const GoalDetail = () => {
         monthlyPledge={goalData.monthly_pledge}
         goalCreatedAt={goalData.created_at}
         contributions={contributions}
-        onSuccess={fetchGoalData}
+        onSuccess={fetchContributions}
       />
     </div>
   );
