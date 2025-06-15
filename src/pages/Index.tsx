@@ -1,14 +1,15 @@
 
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { PlusCircle, Target, TrendingUp, LogOut } from 'lucide-react';
-import { GoalCard } from '@/components/GoalCard';
+import { DashboardHeader } from '@/components/DashboardHeader';
+import { WelcomeSection } from '@/components/WelcomeSection';
+import { OverallProgressCard } from '@/components/OverallProgressCard';
+import { ActionButtons } from '@/components/ActionButtons';
+import { GoalsGrid } from '@/components/GoalsGrid';
+import { EmptyState } from '@/components/EmptyState';
+import { LoadingState } from '@/components/LoadingState';
 import { CreateGoalForm } from '@/components/CreateGoalForm';
 import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useGoals, GoalWithCalculations } from '@/hooks/useGoals';
 
@@ -25,19 +26,19 @@ const Index = () => {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600 dark:text-gray-400">Loading your goals...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   const totalGoalsValue = goals.reduce((sum, goal) => sum + goal.target_amount, 0);
   const totalCurrentValue = goals.reduce((sum, goal) => sum + (goal.current_total || 0), 0);
   const overallProgress = totalGoalsValue > 0 ? (totalCurrentValue / totalGoalsValue) * 100 : 0;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
 
   const handleCreateGoal = async (goalData: any) => {
     await createGoal({
@@ -68,6 +69,8 @@ const Index = () => {
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const userName = user.user_metadata?.first_name || user.email;
 
   if (showCreateForm) {
     return (
@@ -100,125 +103,35 @@ const Index = () => {
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-                <Target className="h-5 w-5 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                VisionFund
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Welcome, {user.user_metadata?.first_name || user.email}
-              </span>
-              <ThemeToggle />
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleSignOut}
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader userName={userName} onSignOut={handleSignOut} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back!</h2>
-          <p className="text-gray-600 dark:text-gray-400">Track your financial goals and watch your dreams become reality.</p>
-        </div>
+        <WelcomeSection userName={userName} />
 
         {/* Overall Progress Card */}
         {goals.length > 0 && (
-          <Card className="mb-8 bg-gradient-to-r from-blue-600 to-green-600 text-white border-0">
-            <CardHeader>
-              <CardTitle className="text-white">Overall Progress</CardTitle>
-              <CardDescription className="text-blue-100">
-                Your journey to financial freedom
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-2xl font-bold">{formatCurrency(totalCurrentValue)}</p>
-                    <p className="text-sm text-blue-100">of {formatCurrency(totalGoalsValue)} total</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold">{Math.round(overallProgress)}%</p>
-                    <p className="text-sm text-blue-100">Complete</p>
-                  </div>
-                </div>
-                <Progress value={overallProgress} className="bg-blue-500/30 [&>div]:bg-white" />
-              </div>
-            </CardContent>
-          </Card>
+          <OverallProgressCard
+            totalCurrentValue={totalCurrentValue}
+            totalGoalsValue={totalGoalsValue}
+            overallProgress={overallProgress}
+            formatCurrency={formatCurrency}
+          />
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <Button 
-            onClick={() => setShowCreateForm(true)}
-            className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-          >
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Create New Goal
-          </Button>
-          <Button variant="outline" className="flex-1 h-12">
-            <TrendingUp className="mr-2 h-5 w-5" />
-            View Analytics
-          </Button>
-        </div>
+        <ActionButtons onCreateGoal={() => setShowCreateForm(true)} />
 
-        {/* Goals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {goals.map((goal) => (
-            <GoalCard 
-              key={goal.id} 
-              goal={goal}
-              onEdit={setEditingGoal}
-              onDelete={deleteGoal}
-              onFulfillPledge={setFulfillPledgeGoal}
-            />
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {goals.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Target className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No goals yet</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Start your financial journey by creating your first goal.
-              </p>
-              <Button 
-                onClick={() => setShowCreateForm(true)}
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-              >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create Your First Goal
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Goals Grid or Empty State */}
+        {goals.length > 0 ? (
+          <GoalsGrid
+            goals={goals}
+            onEditGoal={setEditingGoal}
+            onDeleteGoal={deleteGoal}
+            onFulfillPledge={setFulfillPledgeGoal}
+          />
+        ) : (
+          <EmptyState onCreateGoal={() => setShowCreateForm(true)} />
         )}
       </main>
 
