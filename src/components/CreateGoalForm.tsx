@@ -6,7 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarIcon, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { calculateMonthlyPayment, calculateCompletionDate, calculateTotalInterest } from '@/utils/financialCalculations';
+import { 
+  calculateMonthlyPayment, 
+  getProjectionData, 
+  formatCurrency,
+  validateGoalData,
+  type PaymentCalculationParams
+} from '@/utils/financialUtils';
 
 interface CreateGoalFormProps {
   onSubmit: (goalData: GoalFormData) => void;
@@ -39,76 +45,48 @@ export const CreateGoalForm = ({
     expectedReturnRate: initialData.expectedReturnRate || 5,
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof GoalFormData, string>>>({});
+  const [errors, setErrors] = useState<string[]>([]);
   const [autoCalculatedPledge, setAutoCalculatedPledge] = useState<number | null>(null);
 
-  // Auto-calculate monthly pledge when target amount, date, initial amount, or return rate changes
+  // Auto-calculate monthly pledge when relevant fields change
   useEffect(() => {
     if (formData.targetAmount > 0 && formData.targetDate && formData.expectedReturnRate >= 0) {
-      const targetDate = new Date(formData.targetDate);
-      const today = new Date();
-      
-      if (targetDate > today) {
-        const calculated = calculateMonthlyPayment(
-          formData.targetAmount,
-          formData.initialAmount,
-          targetDate,
-          formData.expectedReturnRate
-        );
+      try {
+        const targetDate = new Date(formData.targetDate);
+        const today = new Date();
         
-        setAutoCalculatedPledge(calculated);
-        
-        // Only auto-set if user hasn't manually entered a value
-        if (formData.monthlyPledge === 0 || formData.monthlyPledge === autoCalculatedPledge) {
-          setFormData(prev => ({
-            ...prev,
-            monthlyPledge: calculated
-          }));
+        if (targetDate > today) {
+          const calculated = calculateMonthlyPayment({
+            targetAmount: formData.targetAmount,
+            initialAmount: formData.initialAmount,
+            targetDate,
+            annualRate: formData.expectedReturnRate
+          });
+          
+          setAutoCalculatedPledge(calculated);
+          
+          // Auto-set if user hasn't manually entered a value
+          if (formData.monthlyPledge === 0 || formData.monthlyPledge === autoCalculatedPledge) {
+            setFormData(prev => ({
+              ...prev,
+              monthlyPledge: calculated
+            }));
+          }
         }
+      } catch (error) {
+        console.error('Error calculating monthly payment:', error);
+        setAutoCalculatedPledge(null);
       }
     }
   }, [formData.targetAmount, formData.targetDate, formData.initialAmount, formData.expectedReturnRate]);
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof GoalFormData, string>> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Goal name is required';
-    }
-
-    if (formData.targetAmount <= 0) {
-      newErrors.targetAmount = 'Target amount must be greater than 0';
-    }
-
-    if (!formData.targetDate) {
-      newErrors.targetDate = 'Target date is required';
-    } else {
-      const targetDate = new Date(formData.targetDate);
-      const today = new Date();
-      if (targetDate <= today) {
-        newErrors.targetDate = 'Target date must be in the future';
-      }
-    }
-
-    if (formData.initialAmount < 0) {
-      newErrors.initialAmount = 'Initial amount cannot be negative';
-    }
-
-    if (formData.monthlyPledge <= 0) {
-      newErrors.monthlyPledge = 'Monthly pledge must be greater than 0';
-    }
-
-    if (formData.expectedReturnRate < 0 || formData.expectedReturnRate > 100) {
-      newErrors.expectedReturnRate = 'Return rate must be between 0 and 100';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
+    
+    const validationErrors = validateGoalData(formData);
+    setErrors(validationErrors);
+    
+    if (validationErrors.length === 0) {
       onSubmit(formData);
     }
   };
@@ -119,49 +97,21 @@ export const CreateGoalForm = ({
       [field]: value
     }));
 
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: undefined
-      }));
+    // Clear errors when user starts typing
+    if (errors.length > 0) {
+      setErrors([]);
     }
   };
 
-  const getProjectionData = () => {
-    if (formData.targetAmount > 0 && formData.monthlyPledge > 0 && formData.targetDate) {
-      const targetDate = new Date(formData.targetDate);
-      const estimatedCompletion = calculateCompletionDate(
+  const projectionData = formData.targetAmount > 0 && formData.monthlyPledge > 0 && formData.targetDate
+    ? getProjectionData(
         formData.targetAmount,
         formData.initialAmount,
         formData.monthlyPledge,
+        new Date(formData.targetDate),
         formData.expectedReturnRate
-      );
-      
-      const totalInterest = calculateTotalInterest(
-        formData.targetAmount,
-        formData.initialAmount,
-        formData.monthlyPledge,
-        formData.expectedReturnRate
-      );
-
-      return {
-        estimatedCompletion: estimatedCompletion.toLocaleDateString(),
-        totalInterest,
-        isOnTrack: estimatedCompletion <= targetDate
-      };
-    }
-    return null;
-  };
-
-  const projectionData = getProjectionData();
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+      )
+    : null;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -177,6 +127,18 @@ export const CreateGoalForm = ({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Display validation errors */}
+            {errors.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <h4 className="text-red-800 font-medium mb-2">Please fix the following errors:</h4>
+                <ul className="text-red-700 text-sm space-y-1">
+                  {errors.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Goal Name */}
             <div className="space-y-2">
               <Label htmlFor="name">Goal Name</Label>
@@ -186,11 +148,7 @@ export const CreateGoalForm = ({
                 placeholder="e.g., Emergency Fund, Vacation, New Car"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                className={cn(errors.name && "border-red-500")}
               />
-              {errors.name && (
-                <p className="text-sm text-red-600">{errors.name}</p>
-              )}
             </div>
 
             {/* Target Amount */}
@@ -204,11 +162,7 @@ export const CreateGoalForm = ({
                 step="0.01"
                 value={formData.targetAmount === 0 ? '' : formData.targetAmount.toString()}
                 onChange={(e) => handleInputChange('targetAmount', parseFloat(e.target.value) || 0)}
-                className={cn(errors.targetAmount && "border-red-500")}
               />
-              {errors.targetAmount && (
-                <p className="text-sm text-red-600">{errors.targetAmount}</p>
-              )}
             </div>
 
             {/* Target Date */}
@@ -220,13 +174,9 @@ export const CreateGoalForm = ({
                   type="date"
                   value={formData.targetDate}
                   onChange={(e) => handleInputChange('targetDate', e.target.value)}
-                  className={cn(errors.targetDate && "border-red-500")}
                 />
                 <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
               </div>
-              {errors.targetDate && (
-                <p className="text-sm text-red-600">{errors.targetDate}</p>
-              )}
             </div>
 
             {/* Initial Amount */}
@@ -240,11 +190,7 @@ export const CreateGoalForm = ({
                 step="0.01"
                 value={formData.initialAmount === 0 ? '' : formData.initialAmount.toString()}
                 onChange={(e) => handleInputChange('initialAmount', parseFloat(e.target.value) || 0)}
-                className={cn(errors.initialAmount && "border-red-500")}
               />
-              {errors.initialAmount && (
-                <p className="text-sm text-red-600">{errors.initialAmount}</p>
-              )}
             </div>
 
             {/* Expected Return Rate */}
@@ -259,17 +205,13 @@ export const CreateGoalForm = ({
                 step="0.1"
                 value={formData.expectedReturnRate === 0 ? '' : formData.expectedReturnRate.toString()}
                 onChange={(e) => handleInputChange('expectedReturnRate', parseFloat(e.target.value) || 0)}
-                className={cn(errors.expectedReturnRate && "border-red-500")}
               />
-              {errors.expectedReturnRate && (
-                <p className="text-sm text-red-600">{errors.expectedReturnRate}</p>
-              )}
               <p className="text-sm text-gray-600">
                 Default is 5%. This is used for compound interest calculations.
               </p>
             </div>
 
-            {/* Monthly Pledge (Auto-calculated) */}
+            {/* Monthly Pledge */}
             <div className="space-y-2">
               <Label htmlFor="monthlyPledge">
                 Monthly Pledge Amount
@@ -287,11 +229,7 @@ export const CreateGoalForm = ({
                 step="0.01"
                 value={formData.monthlyPledge === 0 ? '' : formData.monthlyPledge.toString()}
                 onChange={(e) => handleInputChange('monthlyPledge', parseFloat(e.target.value) || 0)}
-                className={cn(errors.monthlyPledge && "border-red-500")}
               />
-              {errors.monthlyPledge && (
-                <p className="text-sm text-red-600">{errors.monthlyPledge}</p>
-              )}
               <p className="text-sm text-gray-600">
                 This amount is auto-calculated based on your target. You can adjust it manually.
               </p>
@@ -323,6 +261,10 @@ export const CreateGoalForm = ({
                   <div className="flex justify-between">
                     <span className="text-gray-700">Projected interest:</span>
                     <span className="font-medium">{formatCurrency(projectionData.totalInterest)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Time to completion:</span>
+                    <span className="font-medium">{projectionData.monthsToCompletion} months</span>
                   </div>
                   <div className="flex justify-between border-t pt-2">
                     <span className="text-gray-700">Estimated completion:</span>

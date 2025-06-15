@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { calculateProgressPercentage } from '@/utils/financialUtils';
 import type { Database } from '@/integrations/supabase/types';
 
 type Goal = Database['public']['Tables']['goals']['Row'];
@@ -22,64 +23,101 @@ export const useGoals = () => {
   const { toast } = useToast();
 
   const calculateGoalMetrics = (goal: Goal): GoalWithCalculations => {
-    const progressPercentage = goal.target_amount > 0 ? 
-      Math.min((goal.current_total || 0) / goal.target_amount * 100, 100) : 0;
+    try {
+      const progressPercentage = calculateProgressPercentage(
+        goal.current_total || 0,
+        goal.target_amount
+      );
 
-    // Calculate projected completion date
-    const targetDate = new Date(goal.target_date);
-    const today = new Date();
-    const remaining = goal.target_amount - (goal.current_total || 0);
-    const monthsNeeded = remaining > 0 ? Math.ceil(remaining / goal.monthly_pledge) : 0;
-    
-    const projectedDate = new Date();
-    projectedDate.setMonth(projectedDate.getMonth() + monthsNeeded);
-    
-    // Determine status
-    let onTrackStatus: 'on-track' | 'behind' | 'ahead' = 'on-track';
-    if (projectedDate > targetDate) {
-      onTrackStatus = 'behind';
-    } else if (projectedDate < targetDate && progressPercentage > 50) {
-      onTrackStatus = 'ahead';
+      // Calculate projected completion date
+      const targetDate = new Date(goal.target_date);
+      const today = new Date();
+      const remaining = Math.max(0, goal.target_amount - (goal.current_total || 0));
+      
+      let monthsNeeded = 0;
+      if (remaining > 0 && goal.monthly_pledge > 0) {
+        monthsNeeded = Math.ceil(remaining / goal.monthly_pledge);
+      }
+      
+      const projectedDate = new Date();
+      projectedDate.setMonth(projectedDate.getMonth() + monthsNeeded);
+      
+      // Determine status
+      let onTrackStatus: 'on-track' | 'behind' | 'ahead' = 'on-track';
+      if (projectedDate > targetDate) {
+        onTrackStatus = 'behind';
+      } else if (projectedDate < targetDate && progressPercentage > 50) {
+        onTrackStatus = 'ahead';
+      }
+
+      return {
+        ...goal,
+        progressPercentage,
+        onTrackStatus,
+        projectedCompletionDate: projectedDate.toISOString().split('T')[0]
+      };
+    } catch (error) {
+      console.error('Error calculating goal metrics:', error);
+      // Return goal with default values if calculation fails
+      return {
+        ...goal,
+        progressPercentage: 0,
+        onTrackStatus: 'on-track' as const,
+        projectedCompletionDate: goal.target_date
+      };
     }
-
-    return {
-      ...goal,
-      progressPercentage,
-      onTrackStatus,
-      projectedCompletionDate: projectedDate.toISOString().split('T')[0]
-    };
   };
 
   const fetchGoals = async () => {
-    if (!user) return;
+    if (!user) {
+      setGoals([]);
+      setLoading(false);
+      return;
+    }
 
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('goals')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
-      const goalsWithCalculations = data.map(calculateGoalMetrics);
+      const goalsWithCalculations = (data || []).map(calculateGoalMetrics);
       setGoals(goalsWithCalculations);
     } catch (error) {
       console.error('Error fetching goals:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch goals",
+        description: "Failed to fetch goals. Please try again.",
         variant: "destructive",
       });
+      setGoals([]);
     } finally {
       setLoading(false);
     }
   };
 
   const createGoal = async (goalData: Omit<GoalInsert, 'user_id'>) => {
-    if (!user) return null;
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to create goals.",
+        variant: "destructive",
+      });
+      return null;
+    }
 
     try {
+      // Validate goal data
+      if (!goalData.name || goalData.target_amount <= 0 || goalData.monthly_pledge <= 0) {
+        throw new Error('Invalid goal data provided');
+      }
+
       const { data, error } = await supabase
         .from('goals')
         .insert({
@@ -90,7 +128,9 @@ export const useGoals = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -103,7 +143,7 @@ export const useGoals = () => {
       console.error('Error creating goal:', error);
       toast({
         title: "Error",
-        description: "Failed to create goal",
+        description: error instanceof Error ? error.message : "Failed to create goal",
         variant: "destructive",
       });
       return null;
@@ -111,13 +151,25 @@ export const useGoals = () => {
   };
 
   const updateGoal = async (id: string, updates: GoalUpdate) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to update goals.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('goals')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Ensure user can only update their own goals
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -129,20 +181,32 @@ export const useGoals = () => {
       console.error('Error updating goal:', error);
       toast({
         title: "Error",
-        description: "Failed to update goal",
+        description: error instanceof Error ? error.message : "Failed to update goal",
         variant: "destructive",
       });
     }
   };
 
   const deleteGoal = async (id: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to delete goals.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('goals')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Ensure user can only delete their own goals
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -154,19 +218,14 @@ export const useGoals = () => {
       console.error('Error deleting goal:', error);
       toast({
         title: "Error",
-        description: "Failed to delete goal",
+        description: error instanceof Error ? error.message : "Failed to delete goal",
         variant: "destructive",
       });
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchGoals();
-    } else {
-      setGoals([]);
-      setLoading(false);
-    }
+    fetchGoals();
   }, [user]);
 
   return {
