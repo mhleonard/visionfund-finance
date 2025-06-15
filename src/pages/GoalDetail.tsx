@@ -193,7 +193,7 @@ const GoalDetail = () => {
                     <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                       {formatCurrency(Math.max(0, projectedInterest))}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-500 text-left">
                       At {goalData.expected_return_rate || 0}% annual
                     </p>
                   </div>
