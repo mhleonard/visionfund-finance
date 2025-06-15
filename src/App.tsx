@@ -6,8 +6,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/hooks/useAuth';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
-// CHANGE BELOW LINE:
-import { GoalDetail } from '@/pages/GoalDetail';
+import GoalDetail from '@/pages/GoalDetail';
 import EditGoal from '@/pages/EditGoal';
 import Landing from '@/pages/Landing';
 import NotFound from '@/pages/NotFound';

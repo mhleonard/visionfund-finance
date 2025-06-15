@@ -4,13 +4,13 @@ import { DashboardHeader } from '@/components/DashboardHeader';
 import { WelcomeSection } from '@/components/WelcomeSection';
 import { OverallProgressCard } from '@/components/OverallProgressCard';
 import { ActionButtons } from '@/components/ActionButtons';
+import { GoalsGrid } from '@/components/GoalsGrid';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/LoadingState';
 import { CreateGoalForm } from '@/components/CreateGoalForm';
 import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
 import { useAuth } from '@/hooks/useAuth';
-import { GoalsGrid } from '@/features/goals/components/GoalsGrid';
-import { useGoals, GoalWithCalculations } from '@/features/goals/hooks/useGoals';
+import { useGoals, GoalWithCalculations } from '@/hooks/useGoals';
 
 const Index = () => {
   const { user, signOut } = useAuth();

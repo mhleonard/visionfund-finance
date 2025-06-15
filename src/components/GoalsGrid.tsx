@@ -1,6 +1,6 @@
 
-import { GoalCard } from './GoalCard';
-import { GoalWithCalculations } from '../hooks/useGoals';
+import { GoalCard } from '@/components/GoalCard';
+import { GoalWithCalculations } from '@/hooks/useGoals';
 
 interface GoalsGridProps {
   goals: GoalWithCalculations[];
@@ -29,4 +29,3 @@ export const GoalsGrid = ({
     </div>
   );
 };
-

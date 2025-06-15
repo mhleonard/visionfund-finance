@@ -1,3 +1,4 @@
+
 import { Goal, Contribution, MonthlyData, YearGroup } from './types';
 import { getContributionStartDate } from '@/utils/financialCalculations';
 

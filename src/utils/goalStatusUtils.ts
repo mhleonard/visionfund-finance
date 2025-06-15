@@ -1,5 +1,5 @@
 
-import type { GoalWithCalculations } from '../types';
+import type { GoalWithCalculations } from '@/types/goal';
 
 export const getStatusColor = (status: GoalWithCalculations['onTrackStatus']) => {
   switch (status) {

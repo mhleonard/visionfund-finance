@@ -1,9 +1,10 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/utils/financialCalculations';
 import { cn } from '@/lib/utils';
-import { MonthlyData, Goal } from '../types';
-import { getStatusIcon, getStatusColor, getStatusText } from '../utils';
+import { MonthlyData, Goal } from './types';
+import { getStatusIcon, getStatusColor, getStatusText } from './utils';
 
 interface MonthCardProps {
   month: MonthlyData;

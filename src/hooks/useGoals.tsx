@@ -1,17 +1,17 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { calculateGoalMetrics } from '../services/goalCalculations';
+import { calculateGoalMetrics } from '@/services/goalCalculations';
 import { 
   fetchGoalsFromDb, 
   createGoalInDb, 
   updateGoalInDb, 
   deleteGoalFromDb 
-} from '../services/goalApi';
-import type { GoalWithCalculations, GoalInsert, GoalUpdate } from '../types';
+} from '@/services/goalApi';
+import type { GoalWithCalculations, GoalInsert, GoalUpdate } from '@/types/goal';
 
-export { type GoalWithCalculations } from '../types';
+export { type GoalWithCalculations } from '@/types/goal';
 
 export const useGoals = () => {
   const [goals, setGoals] = useState<GoalWithCalculations[]>([]);
