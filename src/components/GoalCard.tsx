@@ -60,7 +60,7 @@ export const GoalCard = ({
             <CardTitle className="text-lg line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-left">
               {goal.name}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-left">
               Target: {formatCurrency(goal.target_amount)}
             </CardDescription>
           </div>
