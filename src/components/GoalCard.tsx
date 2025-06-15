@@ -32,13 +32,13 @@ const formatDate = (dateString: string) => {
 const getStatusColor = (status: GoalWithCalculations['onTrackStatus']) => {
   switch (status) {
     case 'on-track':
-      return 'text-green-600 bg-green-50 border-green-200';
+      return 'text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950 dark:border-green-800';
     case 'ahead':
-      return 'text-blue-600 bg-blue-50 border-blue-200';
+      return 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950 dark:border-blue-800';
     case 'behind':
-      return 'text-red-600 bg-red-50 border-red-200';
+      return 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950 dark:border-red-800';
     default:
-      return 'text-gray-600 bg-gray-50 border-gray-200';
+      return 'text-muted-foreground bg-muted border-border';
   }
 };
 
@@ -91,7 +91,7 @@ export const GoalCard = ({ goal, onEdit, onDelete, onClick, onFulfillPledge }: G
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg line-clamp-1 group-hover:text-blue-600 transition-colors">
+            <CardTitle className="text-lg line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {goal.name}
             </CardTitle>
             <CardDescription>
@@ -117,7 +117,7 @@ export const GoalCard = ({ goal, onEdit, onDelete, onClick, onFulfillPledge }: G
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 onClick={handleDeleteClick}
               >
                 <Trash2 className="h-4 w-4" />
@@ -129,7 +129,7 @@ export const GoalCard = ({ goal, onEdit, onDelete, onClick, onFulfillPledge }: G
       <CardContent className="space-y-4">
         <div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">Progress</span>
+            <span className="text-sm text-muted-foreground">Progress</span>
             <span className="text-sm font-medium">{Math.round(goal.progressPercentage)}%</span>
           </div>
           <Progress value={goal.progressPercentage} className="h-2" />
@@ -137,31 +137,31 @@ export const GoalCard = ({ goal, onEdit, onDelete, onClick, onFulfillPledge }: G
 
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">Current</span>
+            <span className="text-sm text-muted-foreground">Current</span>
             <span className="text-sm font-medium">{formatCurrency(goal.current_total || 0)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">Remaining</span>
+            <span className="text-sm text-muted-foreground">Remaining</span>
             <span className="text-sm font-medium">
               {formatCurrency(goal.target_amount - (goal.current_total || 0))}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">Monthly Pledge</span>
+            <span className="text-sm text-muted-foreground">Monthly Pledge</span>
             <span className="text-sm font-medium">{formatCurrency(goal.monthly_pledge)}</span>
           </div>
         </div>
 
         <div className="pt-2 border-t space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center text-gray-600">
+            <div className="flex items-center text-muted-foreground">
               <Calendar className="mr-1 h-4 w-4" />
               Target Date
             </div>
             <span className="font-medium">{formatDate(goal.target_date)}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center text-gray-600">
+            <div className="flex items-center text-muted-foreground">
               <TrendingUp className="mr-1 h-4 w-4" />
               Projected
             </div>
