@@ -1,20 +1,19 @@
-
 import { DollarSign, Calendar, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/financialCalculations';
 import { cn } from '@/lib/utils';
 import { Goal, Contribution } from './types';
-
 interface QuickStatsProps {
   goal: Goal;
   contributions: Contribution[];
 }
-
-export const QuickStats = ({ goal, contributions }: QuickStatsProps) => {
+export const QuickStats = ({
+  goal,
+  contributions
+}: QuickStatsProps) => {
   const confirmedContributions = contributions.filter(c => c.is_confirmed);
   const totalConfirmed = confirmedContributions.reduce((sum, c) => sum + c.amount, 0);
   const totalWithInitial = totalConfirmed + (goal.initial_amount || 0);
-  const overallProgressPercentage = Math.min(100, (totalWithInitial / goal.target_amount) * 100);
-
+  const overallProgressPercentage = Math.min(100, totalWithInitial / goal.target_amount * 100);
   const getProgressColorClasses = (percentage: number) => {
     if (percentage >= 75) {
       return {
@@ -42,18 +41,15 @@ export const QuickStats = ({ goal, contributions }: QuickStatsProps) => {
       };
     }
   };
-
   const progressColors = getProgressColorClasses(overallProgressPercentage);
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  return <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Total Saved Card */}
       <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
         <div className="flex items-center space-x-2 mb-2">
           <DollarSign className="h-4 w-4 text-green-600" />
           <p className="text-sm text-green-700 dark:text-green-300 font-medium">Total Saved</p>
         </div>
-        <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+        <p className="text-2xl font-bold text-green-900 dark:text-green-100 text-left">
           {formatCurrency(totalWithInitial)}
         </p>
         <p className="text-xs text-green-600 dark:text-green-400">
@@ -76,13 +72,11 @@ export const QuickStats = ({ goal, contributions }: QuickStatsProps) => {
       </div>
       
       {/* Progress Card */}
-      <div className={cn(
-        "p-4 rounded-lg border",
-        progressColors.background,
-        progressColors.border
-      )}>
+      <div className={cn("p-4 rounded-lg border", progressColors.background, progressColors.border)}>
         <div className="flex items-center space-x-2 mb-2">
-          <TrendingUp className="h-4 w-4" style={{ color: progressColors.text.includes('green') ? '#16a34a' : progressColors.text.includes('blue') ? '#2563eb' : '#ca8a04' }} />
+          <TrendingUp className="h-4 w-4" style={{
+          color: progressColors.text.includes('green') ? '#16a34a' : progressColors.text.includes('blue') ? '#2563eb' : '#ca8a04'
+        }} />
           <p className={cn("text-sm font-medium", progressColors.text)}>
             Overall Progress
           </p>
@@ -94,6 +88,5 @@ export const QuickStats = ({ goal, contributions }: QuickStatsProps) => {
           {formatCurrency(totalWithInitial)} of {formatCurrency(goal.target_amount)}
         </p>
       </div>
-    </div>
-  );
+    </div>;
 };
