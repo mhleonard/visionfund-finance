@@ -190,7 +190,7 @@ const GoalDetail = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Interest Earned</p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400 text-left">
                       {formatCurrency(Math.max(0, projectedInterest))}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 text-left">
