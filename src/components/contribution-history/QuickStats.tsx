@@ -66,7 +66,7 @@ export const QuickStats = ({
         <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 text-left">
           {formatCurrency(totalConfirmed)}
         </p>
-        <p className="text-xs text-blue-600 dark:text-blue-400">
+        <p className="text-xs text-blue-600 dark:text-blue-400 text-left">
           {confirmedContributions.length} confirmed
         </p>
       </div>
