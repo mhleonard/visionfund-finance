@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -142,7 +143,7 @@ const Index = () => {
         goalName={fulfillPledgeGoal?.name || ''}
         monthlyPledge={fulfillPledgeGoal?.monthly_pledge || 0}
         goalCreatedAt={fulfillPledgeGoal?.created_at || ''}
-        contributions={fulfillPledgeGoal?.contributions || []}
+        contributions={[]}
         onSuccess={() => {
           refetch();
           setFulfillPledgeGoal(null);
