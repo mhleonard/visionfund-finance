@@ -16,7 +16,9 @@ export const MonthCard = ({ month, goal }: MonthCardProps) => {
     ? Math.min(100, (month.actualAmount / month.pledgedAmount) * 100)
     : 0;
   
-  const targetProgressPercentage = (month.actualAmount / goal.target_amount) * 100;
+  const targetProgressPercentage = goal.target_amount > 0 
+    ? (month.actualAmount / goal.target_amount) * 100 
+    : 0;
 
   return (
     <div 
@@ -29,7 +31,9 @@ export const MonthCard = ({ month, goal }: MonthCardProps) => {
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-3">
-          <span className="text-2xl">{getStatusIcon(month.status)}</span>
+          <span className="text-2xl" role="img" aria-label={getStatusText(month.status)}>
+            {getStatusIcon(month.status)}
+          </span>
           <div>
             <h4 className="font-medium text-gray-900 dark:text-white">
               {month.isInitialAmount ? 'Initial Deposit' : month.monthDisplay}
@@ -53,12 +57,12 @@ export const MonthCard = ({ month, goal }: MonthCardProps) => {
       {!month.isInitialAmount && month.status !== 'future' && (
         <div className="space-y-2">
           <Progress 
-            value={completionPercentage} 
+            value={Math.max(0, Math.min(100, completionPercentage))} 
             className="h-2"
           />
           <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
             <span>{Math.round(completionPercentage)}% of pledge</span>
-            {month.contributions.length > 0 && (
+            {month.contributions && month.contributions.length > 0 && (
               <span>{month.contributions.length} contribution(s)</span>
             )}
           </div>
@@ -66,7 +70,7 @@ export const MonthCard = ({ month, goal }: MonthCardProps) => {
       )}
 
       {/* Show date for initial deposit */}
-      {month.isInitialAmount && (
+      {month.isInitialAmount && goal.created_at && (
         <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Initial Contribution:</p>
           <div className="space-y-1">
@@ -75,7 +79,7 @@ export const MonthCard = ({ month, goal }: MonthCardProps) => {
                 {new Date(goal.created_at).toLocaleDateString()}
               </span>
               <div className="flex items-center space-x-2">
-                <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
+                <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
                   Initial Amount
                 </span>
                 <span className="font-medium">
@@ -87,7 +91,7 @@ export const MonthCard = ({ month, goal }: MonthCardProps) => {
         </div>
       )}
 
-      {month.contributions.length > 0 && (
+      {month.contributions && month.contributions.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Individual Contributions:</p>
           <div className="space-y-1">
@@ -100,8 +104,8 @@ export const MonthCard = ({ month, goal }: MonthCardProps) => {
                   <span className={cn(
                     "px-2 py-1 rounded text-xs",
                     contribution.is_confirmed 
-                      ? "bg-green-100 text-green-800" 
-                      : "bg-yellow-100 text-yellow-800"
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300" 
+                      : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
                   )}>
                     {contribution.is_confirmed ? 'Confirmed' : 'Pending'}
                   </span>

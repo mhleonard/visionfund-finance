@@ -19,7 +19,7 @@ export const generateMonthlyData = (goal: Goal, contributions: Contribution[]): 
   if (goal.initial_amount > 0) {
     const goalCreatedDate = new Date(goal.created_at);
     monthlyData.push({
-      month: `initial-${goalCreatedDate.toISOString().slice(0, 7)}`, // Make it unique
+      month: `initial-${goalCreatedDate.getFullYear()}-${goalCreatedDate.getMonth()}`, // More unique key
       monthDisplay: goalCreatedDate.toLocaleDateString('en-US', { 
         month: 'long', 
         year: 'numeric' 
@@ -40,7 +40,7 @@ export const generateMonthlyData = (goal: Goal, contributions: Contribution[]): 
   while (currentDate <= targetDate) {
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth(); // 0-based month index
-    const monthKey = `monthly-${currentDate.toISOString().slice(0, 7)}`; // Make it unique and different from initial
+    const monthKey = `monthly-${currentYear}-${currentMonth}`; // More unique key
     const monthDisplay = currentDate.toLocaleDateString('en-US', { 
       month: 'long', 
       year: 'numeric' 
@@ -136,17 +136,17 @@ export const getStatusIcon = (status: MonthlyData['status']) => {
 export const getStatusColor = (status: MonthlyData['status']) => {
   switch (status) {
     case 'initial':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
     case 'confirmed':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800';
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800';
     case 'missed':
-      return 'bg-red-100 text-red-800 border-red-200';
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
     case 'future':
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600';
   }
 };
 

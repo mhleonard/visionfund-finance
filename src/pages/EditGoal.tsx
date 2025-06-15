@@ -32,18 +32,27 @@ const EditGoal = () => {
       return;
     }
     fetchGoal();
-  }, [user, id]);
+  }, [user, id, navigate]);
 
   const fetchGoal = async () => {
+    if (!id || !user?.id) {
+      navigate('/');
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('goals')
         .select('*')
         .eq('id', id)
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle(); // Use maybeSingle to avoid errors when no data found
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching goal:', error);
+        throw error;
+      }
+      
       if (!data) {
         toast({
           title: "Goal not found",
@@ -69,7 +78,7 @@ const EditGoal = () => {
   };
 
   const handleSubmit = async (goalData: GoalFormData) => {
-    if (!goal) return;
+    if (!goal || !user?.id) return;
 
     try {
       const { error } = await supabase
@@ -84,9 +93,12 @@ const EditGoal = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', goal.id)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating goal:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -105,7 +117,11 @@ const EditGoal = () => {
   };
 
   const handleCancel = () => {
-    navigate(`/goals/${id}`);
+    if (id) {
+      navigate(`/goals/${id}`);
+    } else {
+      navigate('/');
+    }
   };
 
   if (loading) {
