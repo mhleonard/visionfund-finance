@@ -69,7 +69,7 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
       });
       
       const monthYear = currentDate.toLocaleDateString('en-US', { 
-        month: 'long', 
+        month: 'short', 
         year: 'numeric' 
       });
       
@@ -92,10 +92,11 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
         (currentDate.getMonth() - goalCreatedDate.getMonth())
       );
       
-      const monthsFromContributionStart = Math.max(0,
+      // Calculate months from contribution start date
+      const monthsFromContributionStart = currentDate >= contributionStartDate ? Math.max(0,
         (currentDate.getFullYear() - contributionStartDate.getFullYear()) * 12 + 
-        (currentDate.getMonth() - contributionStartDate.getMonth())
-      );
+        (currentDate.getMonth() - contributionStartDate.getMonth()) + 1
+      ) : 0;
       
       const monthlyRate = (goal.expected_return_rate || 0) / 100 / 12;
       let projectedAmount = goal.initial_amount || 0;
@@ -104,17 +105,16 @@ export const EnhancedGoalProgressChart = ({ goal, contributions }: EnhancedGoalP
         // Future value of initial amount with compound interest
         const futureValueInitial = (goal.initial_amount || 0) * Math.pow(1 + monthlyRate, monthsFromGoalCreation);
         
-        // Future value of regular contributions
-        const contributionPeriods = Math.max(0, monthsFromContributionStart);
-        const futureValueContributions = contributionPeriods > 0 
-          ? goal.monthly_pledge * (Math.pow(1 + monthlyRate, contributionPeriods) - 1) / monthlyRate
+        // Future value of regular contributions (only from contribution start date)
+        const futureValueContributions = monthsFromContributionStart > 0 
+          ? goal.monthly_pledge * (Math.pow(1 + monthlyRate, monthsFromContributionStart) - 1) / monthlyRate
           : 0;
         
         projectedAmount = futureValueInitial + futureValueContributions;
       } else {
         // Simple addition without compound interest
-        const contributionPeriods = Math.max(0, monthsFromContributionStart);
-        projectedAmount = (goal.initial_amount || 0) + (goal.monthly_pledge * contributionPeriods);
+        const totalContributions = monthsFromContributionStart * goal.monthly_pledge;
+        projectedAmount = (goal.initial_amount || 0) + totalContributions;
       }
       
       // Update actual saved for past/current months
