@@ -1,8 +1,7 @@
-
 import { DollarSign, Calendar, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/financialCalculations';
 import { cn } from '@/lib/utils';
-import { Goal, Contribution } from './types';
+import { Goal, Contribution } from '../types';
 
 interface QuickStatsProps {
   goal: Goal;

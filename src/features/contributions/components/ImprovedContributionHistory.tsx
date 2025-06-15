@@ -1,8 +1,7 @@
-
-import { ContributionHistoryProps } from './contribution-history/types';
-import { generateMonthlyData } from './contribution-history/utils';
-import { QuickStats } from './contribution-history/QuickStats';
-import { ContributionTimeline } from './contribution-history/ContributionTimeline';
+import { ContributionHistoryProps } from '../types';
+import { generateMonthlyData } from '../utils';
+import { QuickStats } from './QuickStats';
+import { ContributionTimeline } from './ContributionTimeline';
 
 export const ImprovedContributionHistory = ({ goal, contributions }: ContributionHistoryProps) => {
   const yearGroups = generateMonthlyData(goal, contributions);

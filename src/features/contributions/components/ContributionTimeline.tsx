@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { YearGroup, Goal } from './types';
+import { YearGroup, Goal } from '../types';
 import { YearSection } from './YearSection';
 
 interface ContributionTimelineProps {

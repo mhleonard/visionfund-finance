@@ -1,9 +1,8 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/financialCalculations';
-import { YearGroup, Goal } from './types';
+import { YearGroup, Goal } from '../types';
 import { MonthCard } from './MonthCard';
 
 interface YearSectionProps {
