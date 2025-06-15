@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -15,6 +14,8 @@ interface YearSectionProps {
 }
 
 export const YearSection = ({ yearGroup, goal, isExpanded, onToggle }: YearSectionProps) => {
+  const progressPercentage = Math.round((yearGroup.totalActual / goal.target_amount) * 100);
+
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -33,7 +34,7 @@ export const YearSection = ({ yearGroup, goal, isExpanded, onToggle }: YearSecti
                   </h3>
                 </div>
                 <Badge variant="outline" className="text-xs">
-                  {yearGroup.months.length} months
+                  {yearGroup.months.length} {yearGroup.months.length === 1 ? 'month' : 'months'}
                 </Badge>
               </div>
               
@@ -42,7 +43,7 @@ export const YearSection = ({ yearGroup, goal, isExpanded, onToggle }: YearSecti
                   {formatCurrency(yearGroup.totalActual)}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {Math.round((yearGroup.totalActual / goal.target_amount) * 100)}% of target
+                  {progressPercentage}% of target
                 </p>
               </div>
             </div>

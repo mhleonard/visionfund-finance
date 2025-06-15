@@ -15,11 +15,11 @@ export const generateMonthlyData = (goal: Goal, contributions: Contribution[]): 
   const targetDate = new Date(goal.target_date);
   const today = new Date();
   
-  // Add initial amount as first entry
+  // Add initial amount as first entry with unique identifier
   if (goal.initial_amount > 0) {
     const goalCreatedDate = new Date(goal.created_at);
     monthlyData.push({
-      month: goalCreatedDate.toISOString().slice(0, 7),
+      month: `initial-${goalCreatedDate.toISOString().slice(0, 7)}`, // Make it unique
       monthDisplay: goalCreatedDate.toLocaleDateString('en-US', { 
         month: 'long', 
         year: 'numeric' 
@@ -40,7 +40,7 @@ export const generateMonthlyData = (goal: Goal, contributions: Contribution[]): 
   while (currentDate <= targetDate) {
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth(); // 0-based month index
-    const monthKey = currentDate.toISOString().slice(0, 7); // YYYY-MM format
+    const monthKey = `monthly-${currentDate.toISOString().slice(0, 7)}`; // Make it unique and different from initial
     const monthDisplay = currentDate.toLocaleDateString('en-US', { 
       month: 'long', 
       year: 'numeric' 
@@ -93,8 +93,14 @@ export const generateMonthlyData = (goal: Goal, contributions: Contribution[]): 
   const sortedYearGroups: YearGroup[] = Array.from(yearGroups.entries())
     .sort(([a], [b]) => a - b)
     .map(([year, months]) => {
-      // Sort months within year chronologically
-      const sortedMonths = months.sort((a, b) => a.month.localeCompare(b.month));
+      // Sort months within year chronologically, ensuring initial deposit comes first
+      const sortedMonths = months.sort((a, b) => {
+        // Initial amount always comes first
+        if (a.isInitialAmount && !b.isInitialAmount) return -1;
+        if (!a.isInitialAmount && b.isInitialAmount) return 1;
+        // Then sort by month key
+        return a.month.localeCompare(b.month);
+      });
       
       const totalPledged = sortedMonths.reduce((sum, m) => sum + m.pledgedAmount, 0);
       const totalActual = sortedMonths.reduce((sum, m) => sum + m.actualAmount, 0);
