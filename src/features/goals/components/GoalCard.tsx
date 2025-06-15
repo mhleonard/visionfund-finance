@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -63,16 +62,17 @@ export const GoalCard = ({ goal, onEdit, onDelete, onFulfillPledge }: GoalCardPr
       className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group"
       onClick={handleCardClick}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 text-left"> {/* align header content to left */}
         <div className="flex justify-between items-start">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          <div className="flex-1 min-w-0 text-left">
+            <CardTitle className="text-lg line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-left">
               {goal.name}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-left">
               Target: {formatCurrency(goal.target_amount)}
             </CardDescription>
           </div>
+          
           <div className="flex items-center space-x-2 ml-2">
             <span className={cn(
               'px-2 py-1 rounded-full text-xs font-medium border',

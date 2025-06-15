@@ -17,9 +17,9 @@ export const OverallProgressCard = ({
 }: OverallProgressCardProps) => {
   return (
     <Card className="mb-8 bg-gradient-to-r from-blue-600 to-green-600 text-white border-0">
-      <CardHeader>
-        <CardTitle className="text-white">Overall Progress</CardTitle>
-        <CardDescription className="text-blue-100">
+      <CardHeader className="text-left">
+        <CardTitle className="text-white text-left">Overall Progress</CardTitle>
+        <CardDescription className="text-blue-100 text-left">
           Your journey to financial freedom
         </CardDescription>
       </CardHeader>

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ImprovedContributionHistory } from '@/features/contributions/components/ImprovedContributionHistory';
 import { GoalWithCalculations } from '@/features/goals/hooks/useGoals';
 import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
+import { EnhancedGoalProgressChart } from '@/components/EnhancedGoalProgressChart';
 
 export const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -77,8 +79,13 @@ export const GoalDetail = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">{goal.name}</h1>
+    <div className="max-w-4xl mx-auto p-4 text-left">
+      <h1 className="text-2xl font-bold mb-4 text-left">{goal.name}</h1>
+
+      {/* Insert the goal progress chart here, aligned left */}
+      <div className="mb-8">
+        <EnhancedGoalProgressChart goal={goal} contributions={contributions} />
+      </div>
 
       <ImprovedContributionHistory goal={goal} contributions={contributions} />
 
