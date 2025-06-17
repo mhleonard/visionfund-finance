@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -73,31 +74,35 @@ const Index = () => {
 
   if (showCreateForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
-        <CreateGoalForm
-          onSubmit={handleCreateGoal}
-          onCancel={() => setShowCreateForm(false)}
-        />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          <CreateGoalForm
+            onSubmit={handleCreateGoal}
+            onCancel={() => setShowCreateForm(false)}
+          />
+        </div>
       </div>
     );
   }
 
   if (editingGoal) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
-        <CreateGoalForm
-          onSubmit={handleEditGoal}
-          onCancel={() => setEditingGoal(null)}
-          initialData={{
-            name: editingGoal.name,
-            targetAmount: editingGoal.target_amount,
-            targetDate: editingGoal.target_date,
-            initialAmount: editingGoal.initial_amount || 0,
-            monthlyPledge: editingGoal.monthly_pledge,
-            expectedReturnRate: editingGoal.expected_return_rate || 5
-          }}
-          isEditing
-        />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          <CreateGoalForm
+            onSubmit={handleEditGoal}
+            onCancel={() => setEditingGoal(null)}
+            initialData={{
+              name: editingGoal.name,
+              targetAmount: editingGoal.target_amount,
+              targetDate: editingGoal.target_date,
+              initialAmount: editingGoal.initial_amount || 0,
+              monthlyPledge: editingGoal.monthly_pledge,
+              expectedReturnRate: editingGoal.expected_return_rate || 5
+            }}
+            isEditing
+          />
+        </div>
       </div>
     );
   }
@@ -106,32 +111,34 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <DashboardHeader userName={userName} onSignOut={handleSignOut} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <WelcomeSection userName={userName} />
+      <main className="w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          <WelcomeSection userName={userName} />
 
-        {/* Overall Progress Card */}
-        {goals.length > 0 && (
-          <OverallProgressCard
-            totalCurrentValue={totalCurrentValue}
-            totalGoalsValue={totalGoalsValue}
-            overallProgress={overallProgress}
-            formatCurrency={formatCurrency}
-          />
-        )}
+          {/* Overall Progress Card */}
+          {goals.length > 0 && (
+            <OverallProgressCard
+              totalCurrentValue={totalCurrentValue}
+              totalGoalsValue={totalGoalsValue}
+              overallProgress={overallProgress}
+              formatCurrency={formatCurrency}
+            />
+          )}
 
-        <ActionButtons onCreateGoal={() => setShowCreateForm(true)} />
+          <ActionButtons onCreateGoal={() => setShowCreateForm(true)} />
 
-        {/* Goals Grid or Empty State */}
-        {goals.length > 0 ? (
-          <GoalsGrid
-            goals={goals}
-            onEditGoal={setEditingGoal}
-            onDeleteGoal={deleteGoal}
-            onFulfillPledge={setFulfillPledgeGoal}
-          />
-        ) : (
-          <EmptyState onCreateGoal={() => setShowCreateForm(true)} />
-        )}
+          {/* Goals Grid or Empty State */}
+          {goals.length > 0 ? (
+            <GoalsGrid
+              goals={goals}
+              onEditGoal={setEditingGoal}
+              onDeleteGoal={deleteGoal}
+              onFulfillPledge={setFulfillPledgeGoal}
+            />
+          ) : (
+            <EmptyState onCreateGoal={() => setShowCreateForm(true)} />
+          )}
+        </div>
       </main>
 
       {/* Fulfill Pledge Dialog */}
