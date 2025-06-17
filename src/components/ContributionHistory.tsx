@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/financialCalculations';
 import { cn } from '@/lib/utils';
+import { QuickStats } from './contribution-history/QuickStats';
 
 interface Goal {
   id: string;
@@ -114,15 +115,15 @@ export const ContributionHistory = ({ goal, contributions }: ContributionHistory
   const getStatusColor = (status: MonthlyData['status']) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800';
       case 'missed':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
       case 'future':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600';
     }
   };
 
@@ -141,55 +142,10 @@ export const ContributionHistory = ({ goal, contributions }: ContributionHistory
     }
   };
 
-  // Calculate quick stats
-  const confirmedContributions = contributions.filter(c => c.is_confirmed);
-  const totalConfirmed = confirmedContributions.reduce((sum, c) => sum + c.amount, 0);
-  const averageMonthly = confirmedContributions.length > 0 
-    ? totalConfirmed / confirmedContributions.length 
-    : 0;
-  
-  const completedMonths = monthlyData.filter(m => m.status === 'confirmed').length;
-  const expectedMonths = monthlyData.filter(m => m.status !== 'future').length;
-  const monthsAheadBehind = completedMonths - expectedMonths;
-
   return (
     <div className="space-y-6">
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-          <p className="text-sm text-green-700 dark:text-green-300">Total Confirmed</p>
-          <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-            {formatCurrency(totalConfirmed)}
-          </p>
-        </div>
-        
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-700 dark:text-blue-300">Average Monthly</p>
-          <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-            {formatCurrency(averageMonthly)}
-          </p>
-        </div>
-        
-        <div className={cn(
-          "p-4 rounded-lg border",
-          monthsAheadBehind >= 0 
-            ? "bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800"
-            : "bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800"
-        )}>
-          <p className={cn(
-            "text-sm",
-            monthsAheadBehind >= 0 ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"
-          )}>
-            Schedule Status
-          </p>
-          <p className={cn(
-            "text-2xl font-bold",
-            monthsAheadBehind >= 0 ? "text-green-900 dark:text-green-100" : "text-red-900 dark:text-red-100"
-          )}>
-            {monthsAheadBehind >= 0 ? `${monthsAheadBehind} ahead` : `${Math.abs(monthsAheadBehind)} behind`}
-          </p>
-        </div>
-      </div>
+      {/* Reuse QuickStats Component */}
+      <QuickStats goal={goal} contributions={contributions} />
 
       {/* Monthly Timeline */}
       <div className="space-y-3">
@@ -207,7 +163,7 @@ export const ContributionHistory = ({ goal, contributions }: ContributionHistory
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">{getStatusIcon(month.status)}</span>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">
+                    <h4 className="font-medium text-gray-900 dark:text-white text-left">
                       {month.monthDisplay}
                     </h4>
                     <Badge className={cn("border text-xs", getStatusColor(month.status))}>
