@@ -75,7 +75,7 @@ const Index = () => {
   if (showCreateForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="w-full">
           <CreateGoalForm
             onSubmit={handleCreateGoal}
             onCancel={() => setShowCreateForm(false)}
@@ -88,7 +88,7 @@ const Index = () => {
   if (editingGoal) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="w-full">
           <CreateGoalForm
             onSubmit={handleEditGoal}
             onCancel={() => setEditingGoal(null)}
@@ -108,11 +108,11 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 w-full">
       <DashboardHeader userName={userName} onSignOut={handleSignOut} />
 
       <main className="w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-7xl mx-auto">
           <WelcomeSection userName={userName} />
 
           {/* Overall Progress Card */}

@@ -66,8 +66,8 @@ const GoalDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 w-full">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 max-w-6xl mx-auto">
           <div className="animate-pulse" role="status" aria-label="Loading goal data">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -85,8 +85,8 @@ const GoalDetail = () => {
 
   if (!goalData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 w-full">
+        <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-center h-64 max-w-6xl mx-auto">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Goal not found</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">The goal you're looking for doesn't exist.</p>
@@ -113,29 +113,29 @@ const GoalDetail = () => {
   const contributionStarted = today >= contributionStartDate;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 w-full">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 w-full">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
               <Button 
                 variant="ghost" 
                 onClick={() => navigate('/dashboard')} 
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800" 
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0" 
                 aria-label="Go back to dashboard"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-left">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white text-left truncate">
                   {goalData.name}
                 </h1>
-                <div className="flex items-center space-x-4 mt-1">
-                  <Badge className={cn("border", getStatusColor(goalData.onTrackStatus))}>
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 mt-1">
+                  <Badge className={cn("border self-start", getStatusColor(goalData.onTrackStatus))}>
                     {getStatusText(goalData.onTrackStatus)}
                   </Badge>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     {Math.round(goalData.progressPercentage)}% complete
                   </span>
                 </div>
@@ -145,16 +145,16 @@ const GoalDetail = () => {
               <Button 
                 variant="outline" 
                 onClick={() => navigate(`/goals/${id}/edit`)} 
-                className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 w-full sm:w-auto"
+                className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 w-full sm:w-auto text-xs sm:text-sm"
               >
-                <Edit className="mr-2 h-4 w-4" />
+                <Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Edit Goal
               </Button>
               <Button 
                 onClick={() => setShowFulfillPledge(true)} 
-                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white w-full sm:w-auto"
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white w-full sm:w-auto text-xs sm:text-sm"
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Fulfill Pledge
               </Button>
             </div>
@@ -162,7 +162,7 @@ const GoalDetail = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8 max-w-6xl mx-auto">
         {/* Key Metrics Cards */}
         <section aria-labelledby="metrics-heading">
           <h2 id="metrics-heading" className="sr-only">Goal Metrics Overview</h2>
@@ -170,17 +170,17 @@ const GoalDetail = () => {
             <Card className="hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700">
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 text-left">Amount Saved</p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-left">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-left">Amount Saved</p>
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white text-left">
                       {formatCurrency(goalData.current_total)}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 text-left">
+                    <p className="text-xs text-gray-500 dark:text-gray-500 text-left truncate">
                       Target: {formatCurrency(goalData.target_amount)}
                     </p>
                   </div>
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
               </CardContent>
@@ -189,17 +189,17 @@ const GoalDetail = () => {
             <Card className="hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700">
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 text-left">Monthly Pledge</p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-left">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-left">Monthly Pledge</p>
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white text-left">
                       {formatCurrency(goalData.monthly_pledge)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 text-left">
                       {contributionStarted ? 'Active' : `Starts ${contributionStartDate.toLocaleDateString('en-US', { month: 'short' })}`}
                     </p>
                   </div>
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </CardContent>
@@ -208,17 +208,17 @@ const GoalDetail = () => {
             <Card className="hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700">
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 text-left">Interest Earned</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400 text-left">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-left">Interest Earned</p>
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 dark:text-green-400 text-left">
                       {formatCurrency(Math.max(0, projectedInterest))}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 text-left">
                       At {goalData.expected_return_rate || 0}% annual
                     </p>
                   </div>
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
               </CardContent>
@@ -227,17 +227,17 @@ const GoalDetail = () => {
             <Card className="hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700">
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 text-left">Days Remaining</p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-left">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-left">Days Remaining</p>
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white text-left">
                       {daysRemaining}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 text-left">
                       Until {targetDate.toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Target className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 dark:text-orange-400" />
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Target className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-orange-600 dark:text-orange-400" />
                   </div>
                 </div>
               </CardContent>
@@ -246,12 +246,12 @@ const GoalDetail = () => {
         </section>
 
         {/* Enhanced Financial Progress Chart */}
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-gray-200 dark:border-gray-700">
+        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-gray-200 dark:border-gray-700 w-full">
           <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white text-left text-lg sm:text-xl">
+            <CardTitle className="text-gray-900 dark:text-white text-left text-base sm:text-lg lg:text-xl">
               Financial Progress Chart
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400 text-left text-sm sm:text-base">
+            <CardDescription className="text-gray-600 dark:text-gray-400 text-left text-xs sm:text-sm lg:text-base">
               Track your financial journey with projected vs actual progress
             </CardDescription>
           </CardHeader>
@@ -261,12 +261,12 @@ const GoalDetail = () => {
         </Card>
 
         {/* Enhanced Contribution History */}
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-gray-200 dark:border-gray-700">
+        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-gray-200 dark:border-gray-700 w-full">
           <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white text-left text-lg sm:text-xl">
+            <CardTitle className="text-gray-900 dark:text-white text-left text-base sm:text-lg lg:text-xl">
               Contribution Timeline
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400 text-left text-sm sm:text-base">
+            <CardDescription className="text-gray-600 dark:text-gray-400 text-left text-xs sm:text-sm lg:text-base">
               Complete history of your savings journey, organized by year
               {goalData.initial_amount > 0 && (
                 <span className="block text-blue-600 dark:text-blue-400 mt-1">

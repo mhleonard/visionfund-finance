@@ -119,7 +119,7 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6">
       <div className="mb-6">
         <Button
           variant="ghost"
@@ -130,10 +130,10 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
           Back
         </Button>
         
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-left">
           {isEditing ? 'Edit Goal' : 'Create New Goal'}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2 text-left">
+        <p className="text-gray-600 dark:text-gray-400 mt-2 text-left text-sm sm:text-base">
           {isEditing ? 'Update your financial goal details' : 'Set up your financial target and savings plan'}
         </p>
       </div>
@@ -141,8 +141,8 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-left">Goal Details</CardTitle>
-            <CardDescription className="text-left">
+            <CardTitle className="text-left text-lg sm:text-xl">Goal Details</CardTitle>
+            <CardDescription className="text-left text-sm sm:text-base">
               Define your financial target and timeline
             </CardDescription>
           </CardHeader>
@@ -152,7 +152,7 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Emergency Fund, New Car, Vacation"
-                className="text-left"
+                className="text-left w-full"
               />
             </FormField>
 
@@ -165,7 +165,7 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
                   placeholder="10000"
                   min="1"
                   step="0.01"
-                  className="text-left"
+                  className="text-left w-full"
                 />
               </FormField>
 
@@ -175,7 +175,7 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
                   value={formData.targetDate}
                   onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
                   min={new Date().toISOString().split('T')[0]}
-                  className="text-left"
+                  className="text-left w-full"
                 />
               </FormField>
             </div>
@@ -184,8 +184,8 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-left">Savings Plan</CardTitle>
-            <CardDescription className="text-left">
+            <CardTitle className="text-left text-lg sm:text-xl">Savings Plan</CardTitle>
+            <CardDescription className="text-left text-sm sm:text-base">
               Configure your initial amount and monthly contributions
             </CardDescription>
           </CardHeader>
@@ -199,7 +199,7 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
                   placeholder="0"
                   min="0"
                   step="0.01"
-                  className="text-left"
+                  className="text-left w-full"
                 />
               </FormField>
 
@@ -211,7 +211,7 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
                   placeholder="500"
                   min="1"
                   step="0.01"
-                  className="text-left"
+                  className="text-left w-full"
                 />
               </FormField>
             </div>
@@ -225,7 +225,7 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
                 min="0"
                 max="50"
                 step="0.1"
-                className="text-left"
+                className="text-left w-full"
               />
             </FormField>
           </CardContent>
@@ -235,13 +235,13 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
         {projection && (
           <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
             <CardHeader>
-              <CardTitle className="flex items-center text-blue-900 dark:text-blue-100 text-left">
+              <CardTitle className="flex items-center text-blue-900 dark:text-blue-100 text-left text-lg sm:text-xl">
                 <Calculator className="mr-2 h-5 w-5" />
                 Quick Projection
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 <div className="text-left">
                   <p className="text-blue-700 dark:text-blue-300 font-medium">Projected Total</p>
                   <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
