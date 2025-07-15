@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Calculator } from 'lucide-react';
+import { ArrowLeft, Calculator, Calendar } from 'lucide-react';
 import { FormField } from './FormField';
+import { useSubscription } from '@/hooks/useSubscription';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 
 export interface GoalFormData {
   name: string;
@@ -20,9 +22,10 @@ interface GoalFormProps {
   onCancel: () => void;
   initialData?: Partial<GoalFormData>;
   isEditing?: boolean;
+  activeGoalsCount?: number;
 }
 
-export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = false }: GoalFormProps) => {
+export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = false, activeGoalsCount = 0 }: GoalFormProps) => {
   const [formData, setFormData] = useState<GoalFormData>({
     name: initialData.name || '',
     targetAmount: initialData.targetAmount || 0,
@@ -34,6 +37,8 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof GoalFormData, string>>>({});
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const { subscriptionTier } = useSubscription();
 
   // Quick projection calculation
   const calculateProjection = () => {
@@ -101,6 +106,12 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
     
     if (!validateForm()) return;
 
+    // Check subscription limit for new goals
+    if (!isEditing && subscriptionTier === 'basic' && activeGoalsCount >= 5) {
+      setShowSubscriptionModal(true);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
@@ -130,10 +141,10 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
           Back
         </Button>
         
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground text-left">
           {isEditing ? 'Edit Goal' : 'Create New Goal'}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2 text-left text-sm sm:text-base">
+        <p className="text-muted-foreground mt-2 text-left text-sm sm:text-base">
           {isEditing ? 'Update your financial goal details' : 'Set up your financial target and savings plan'}
         </p>
       </div>
@@ -170,13 +181,16 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
               </FormField>
 
               <FormField label="Target Date" required error={errors.targetDate}>
-                <Input
-                  type="date"
-                  value={formData.targetDate}
-                  onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="text-left w-full"
-                />
+                <div className="relative">
+                  <Input
+                    type="date"
+                    value={formData.targetDate}
+                    onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="text-left w-full pl-10"
+                  />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                </div>
               </FormField>
             </div>
           </CardContent>
@@ -233,9 +247,9 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
 
         {/* Quick Projection */}
         {projection && (
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
+          <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
             <CardHeader>
-              <CardTitle className="flex items-center text-blue-900 dark:text-blue-100 text-left text-lg sm:text-xl">
+              <CardTitle className="flex items-center text-foreground text-left text-lg sm:text-xl">
                 <Calculator className="mr-2 h-5 w-5" />
                 Quick Projection
               </CardTitle>
@@ -243,24 +257,24 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 <div className="text-left">
-                  <p className="text-blue-700 dark:text-blue-300 font-medium">Projected Total</p>
-                  <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                  <p className="text-foreground/80 font-medium">Projected Total</p>
+                  <p className="text-lg font-bold text-foreground">
                     {formatCurrency(projection.projectedTotal)}
                   </p>
                 </div>
                 <div className="text-left">
-                  <p className="text-blue-700 dark:text-blue-300 font-medium">Timeline</p>
-                  <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                  <p className="text-foreground/80 font-medium">Timeline</p>
+                  <p className="text-lg font-bold text-foreground">
                     {projection.monthsToTarget} months
                   </p>
                 </div>
                 <div className="text-left">
-                  <p className="text-blue-700 dark:text-blue-300 font-medium">
+                  <p className="text-foreground/80 font-medium">
                     {projection.shortfall > 0 ? 'Shortfall' : 'Surplus'}
                   </p>
                   <p className={`text-lg font-bold ${
                     projection.shortfall > 0 
-                      ? 'text-red-600 dark:text-red-400' 
+                      ? 'text-destructive' 
                       : 'text-green-600 dark:text-green-400'
                   }`}>
                     {projection.shortfall > 0 
@@ -292,6 +306,12 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
           </Button>
         </div>
       </form>
+
+      <SubscriptionModal 
+        isOpen={showSubscriptionModal} 
+        onClose={() => setShowSubscriptionModal(false)}
+        showUpgrade={true}
+      />
     </div>
   );
 };

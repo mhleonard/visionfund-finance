@@ -17,11 +17,13 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 const Landing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -103,10 +105,14 @@ const Landing = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
               <Target className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">VisionFund</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">VisionFund</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <ThemeToggle />
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="mr-2">
+                <ThemeToggle />
+              </div>
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" onClick={() => navigate('/auth')} className="hover:bg-gray-100 dark:hover:bg-gray-800">
                   Sign In
@@ -116,7 +122,51 @@ const Landing = () => {
                 </Button>
               </div>
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center space-x-2">
+              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </Button>
+            </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
+              <div className="flex flex-col space-y-3">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    navigate('/auth');
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="justify-start"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={() => {
+                    navigate('/auth');
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white justify-start"
+                >
+                  Get Started
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 

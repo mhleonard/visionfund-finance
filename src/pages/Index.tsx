@@ -12,10 +12,12 @@ import { CreateGoalForm } from '@/components/CreateGoalForm';
 import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useGoals, GoalWithCalculations } from '@/hooks/useGoals';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const Index = () => {
   const { user, signOut } = useAuth();
   const { goals, loading, createGoal, updateGoal, deleteGoal, refetch } = useGoals();
+  const { checkSubscription } = useSubscription();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<GoalWithCalculations | null>(null);
   const [fulfillPledgeGoal, setFulfillPledgeGoal] = useState<GoalWithCalculations | null>(null);
@@ -32,6 +34,7 @@ const Index = () => {
   const totalGoalsValue = goals.reduce((sum, goal) => sum + goal.target_amount, 0);
   const totalCurrentValue = goals.reduce((sum, goal) => sum + (goal.current_total || 0), 0);
   const overallProgress = totalGoalsValue > 0 ? (totalCurrentValue / totalGoalsValue) * 100 : 0;
+  const activeGoalsCount = goals.filter(goal => goal.status === 'active').length;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -50,6 +53,8 @@ const Index = () => {
       expected_return_rate: goalData.expectedReturnRate
     });
     setShowCreateForm(false);
+    // Refresh subscription to update active goals count
+    await checkSubscription();
   };
 
   const handleEditGoal = async (goalData: any) => {
@@ -79,6 +84,7 @@ const Index = () => {
           <CreateGoalForm
             onSubmit={handleCreateGoal}
             onCancel={() => setShowCreateForm(false)}
+            activeGoalsCount={activeGoalsCount}
           />
         </div>
       </div>

@@ -1,8 +1,12 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
+import { AuthProvider } from './hooks/useAuth.tsx';
+import { SubscriptionProvider } from './hooks/useSubscription.tsx';
+import { ThemeProvider } from './components/ThemeProvider.tsx';
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -11,6 +15,14 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <AuthProvider>
+          <SubscriptionProvider>
+            <App />
+          </SubscriptionProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );

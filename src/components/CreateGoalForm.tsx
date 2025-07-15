@@ -16,6 +16,7 @@ interface CreateGoalFormProps {
   onCancel: () => void;
   initialData?: Partial<GoalFormData>;
   isEditing?: boolean;
+  activeGoalsCount?: number;
 }
 
 export interface GoalFormData {
@@ -98,7 +99,8 @@ export const CreateGoalForm = ({
   onSubmit, 
   onCancel, 
   initialData = {}, 
-  isEditing = false 
+  isEditing = false,
+  activeGoalsCount = 0
 }: CreateGoalFormProps) => {
   const [formData, setFormData] = useState<GoalFormData>({
     name: initialData.name || '',
