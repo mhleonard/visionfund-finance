@@ -1,5 +1,4 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -28,18 +27,16 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <AuthProvider>
-            <Router>
-              <div className="min-h-screen bg-background">
-                <Routes>
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/dashboard" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/goals/:id" element={<GoalDetail />} />
-                  <Route path="/goals/:id/edit" element={<EditGoal />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
-            </Router>
+            <div className="min-h-screen bg-background">
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/dashboard" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/goals/:id" element={<GoalDetail />} />
+                <Route path="/goals/:id/edit" element={<EditGoal />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>
