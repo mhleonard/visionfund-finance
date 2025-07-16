@@ -8,7 +8,7 @@ import { ActionButtons } from '@/components/ActionButtons';
 import { GoalsGrid } from '@/components/GoalsGrid';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/LoadingState';
-import { GoalForm } from '@/components/forms/GoalForm';
+import { CreateGoalForm } from '@/components/CreateGoalForm';
 import { FulfillPledgeDialog } from '@/components/FulfillPledgeDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useGoals, GoalWithCalculations } from '@/hooks/useGoals';
@@ -81,7 +81,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="w-full">
-          <GoalForm
+          <CreateGoalForm
             onSubmit={handleCreateGoal}
             onCancel={() => setShowCreateForm(false)}
             activeGoalsCount={activeGoalsCount}
@@ -95,7 +95,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="w-full">
-          <GoalForm
+          <CreateGoalForm
             onSubmit={handleEditGoal}
             onCancel={() => setEditingGoal(null)}
             initialData={{
@@ -107,7 +107,6 @@ const Index = () => {
               expectedReturnRate: editingGoal.expected_return_rate || 5
             }}
             isEditing
-            activeGoalsCount={activeGoalsCount}
           />
         </div>
       </div>
