@@ -189,7 +189,7 @@ export const GoalForm = ({ onSubmit, onCancel, initialData = {}, isEditing = fal
                     min={new Date().toISOString().split('T')[0]}
                     className="text-left w-full pl-10"
                   />
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground/60 pointer-events-none" />
                 </div>
               </FormField>
             </div>

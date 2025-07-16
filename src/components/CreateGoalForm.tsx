@@ -208,7 +208,7 @@ export const CreateGoalForm = ({
 
             {/* Goal Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Goal Name</Label>
+              <Label htmlFor="name" className="text-left">Goal Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -220,7 +220,7 @@ export const CreateGoalForm = ({
 
             {/* Target Amount */}
             <div className="space-y-2">
-              <Label htmlFor="targetAmount">Target Amount</Label>
+              <Label htmlFor="targetAmount" className="text-left">Target Amount</Label>
               <Input
                 id="targetAmount"
                 type="number"
@@ -234,7 +234,7 @@ export const CreateGoalForm = ({
 
             {/* Target Date */}
             <div className="space-y-2">
-              <Label htmlFor="targetDate">Target Date</Label>
+              <Label htmlFor="targetDate" className="text-left">Target Date</Label>
               <div className="relative">
                 <Input
                   id="targetDate"
@@ -242,13 +242,13 @@ export const CreateGoalForm = ({
                   value={formData.targetDate}
                   onChange={(e) => handleInputChange('targetDate', e.target.value)}
                 />
-                <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
+                <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-foreground/60 pointer-events-none" />
               </div>
             </div>
 
             {/* Initial Amount */}
             <div className="space-y-2">
-              <Label htmlFor="initialAmount">Initial Amount (Starting Balance)</Label>
+              <Label htmlFor="initialAmount" className="text-left">Initial Amount (Starting Balance)</Label>
               <Input
                 id="initialAmount"
                 type="number"
@@ -262,7 +262,7 @@ export const CreateGoalForm = ({
 
             {/* Expected Return Rate */}
             <div className="space-y-2">
-              <Label htmlFor="expectedReturnRate">Expected Annual Return Rate (%)</Label>
+              <Label htmlFor="expectedReturnRate" className="text-left">Expected Annual Return Rate (%)</Label>
               <Input
                 id="expectedReturnRate"
                 type="number"
@@ -273,17 +273,17 @@ export const CreateGoalForm = ({
                 value={formData.expectedReturnRate === 0 ? '' : formData.expectedReturnRate.toString()}
                 onChange={(e) => handleInputChange('expectedReturnRate', parseFloat(e.target.value) || 0)}
               />
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Default is 5%. This is used for compound interest calculations.
               </p>
             </div>
 
             {/* Monthly Pledge */}
             <div className="space-y-2">
-              <Label htmlFor="monthlyPledge">
+              <Label htmlFor="monthlyPledge" className="text-left">
                 Monthly Pledge Amount
                 {autoCalculatedPledge && (
-                  <span className="text-sm text-blue-600 ml-2">
+                  <span className="text-sm text-primary ml-2">
                     (Auto-calculated: {formatCurrency(autoCalculatedPledge)})
                   </span>
                 )}
@@ -297,47 +297,47 @@ export const CreateGoalForm = ({
                 value={formData.monthlyPledge === 0 ? '' : formData.monthlyPledge.toString()}
                 onChange={(e) => handleInputChange('monthlyPledge', parseFloat(e.target.value) || 0)}
               />
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 This amount is auto-calculated based on your target. You can adjust it manually.
               </p>
             </div>
 
             {/* Quick Projection Card */}
             {projectionData && (
-              <div className={cn(
-                "p-4 rounded-lg border",
-                projectionData.isOnTrack 
-                  ? "bg-green-50 border-green-200" 
-                  : "bg-orange-50 border-orange-200"
-              )}>
+                <div className={cn(
+                  "p-4 rounded-lg border",
+                  projectionData.isOnTrack 
+                    ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800" 
+                    : "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800"
+                )}>
                 <h4 className={cn(
                   "font-medium mb-3",
-                  projectionData.isOnTrack ? "text-green-900" : "text-orange-900"
+                  projectionData.isOnTrack ? "text-green-900 dark:text-green-100" : "text-orange-900 dark:text-orange-100"
                 )}>
                   Quick Projection
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Starting amount:</span>
-                    <span className="font-medium">{formatCurrency(formData.initialAmount)}</span>
+                    <span className="text-foreground/80">Starting amount:</span>
+                    <span className="font-medium text-foreground">{formatCurrency(formData.initialAmount)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Monthly contribution:</span>
-                    <span className="font-medium">{formatCurrency(formData.monthlyPledge)}</span>
+                    <span className="text-foreground/80">Monthly contribution:</span>
+                    <span className="font-medium text-foreground">{formatCurrency(formData.monthlyPledge)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Projected interest:</span>
-                    <span className="font-medium">{formatCurrency(projectionData.totalInterest)}</span>
+                    <span className="text-foreground/80">Projected interest:</span>
+                    <span className="font-medium text-foreground">{formatCurrency(projectionData.totalInterest)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Time to completion:</span>
-                    <span className="font-medium">{projectionData.monthsToCompletion} months</span>
+                    <span className="text-foreground/80">Time to completion:</span>
+                    <span className="font-medium text-foreground">{projectionData.monthsToCompletion} months</span>
                   </div>
                   <div className="flex justify-between border-t pt-2">
-                    <span className="text-gray-700">Estimated completion:</span>
+                    <span className="text-foreground/80">Estimated completion:</span>
                     <span className={cn(
                       "font-medium",
-                      projectionData.isOnTrack ? "text-green-700" : "text-orange-700"
+                      projectionData.isOnTrack ? "text-green-700 dark:text-green-400" : "text-orange-700 dark:text-orange-400"
                     )}>
                       {projectionData.estimatedCompletion}
                     </span>
@@ -345,7 +345,7 @@ export const CreateGoalForm = ({
                 </div>
                 <p className={cn(
                   "text-xs mt-3",
-                  projectionData.isOnTrack ? "text-green-600" : "text-orange-600"
+                  projectionData.isOnTrack ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"
                 )}>
                   {projectionData.isOnTrack 
                     ? "✓ On track to meet your target date!" 
